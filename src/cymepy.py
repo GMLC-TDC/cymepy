@@ -87,5 +87,6 @@ class cymeInstance:
 if __name__ == "__main__":
     import toml
     Settings = toml.load(open(r"C:\Users\alatif\Desktop\CYMEPY\examples\Example1\Settings.toml"))
+    print(Settings)
     instance = cymeInstance(Settings)
     instance.runSimulation()

@@ -12,4 +12,4 @@
 
 ["Source"]
 "regex filter" = ""
-"properties" = ["KWTOT", "KVARTOT"]
+"properties" = ["KWTOT", "KVARTOT", "OperatingVoltageA"]

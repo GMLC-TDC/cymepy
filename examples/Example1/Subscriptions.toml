@@ -1,5 +1,5 @@
 ["DistributedLoad.318-1"]
-Property = "KWA"
+Property = "CustomerLoads[0].kVA"
 "Subscription ID" = "test.load1.power"
 Multiplier = 1 
 
@@ -7,3 +7,4 @@ Multiplier = 1
 Property = "SourceKVLNOpA"
 "Subscription ID" = "test.feederhead.voltage"
 Multiplier = 1 
+

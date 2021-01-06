@@ -15,6 +15,7 @@ class HELICS:
         'text': 'string',
         'number': 'int64',
         'real': 'double',
+        '': 'double',
     }
 
     def __init__(self, settings, cymepy, Solver, logger):
@@ -70,9 +71,14 @@ class HELICS:
                 if not found:
                     raise Exception(f"Element {eName} for class {cName} not found. See subscriptions")
                 else:
-                    keyword = self.cympy.app.GetKeyword(subInfo["Property"])
-                    if keyword.IsReadOnly:
-                        raise Exception(f"{subInfo['Property']} is a read-only property for {cName}.{eName}. Cannot be used for subscriptions")
+                    found, pUnits, pDefaultValue, pType = self.isProperty(fDevice, subInfo["Property"])
+
+                    if not found:
+                        raise Exception("{} is not a valid property for {}.\nValid options are:\n{}".format(
+                            subInfo['Property'],
+                            cName,
+                            self.listProperties(cName)
+                        ))
 
                     subname = subInfo["Subscription ID"]
                     self.Subscriptions[subname] = {
@@ -80,13 +86,13 @@ class HELICS:
                         "subscriptionObj": h.helicsFederateRegisterSubscription(
                             self.cymeFederate,
                             subInfo["Subscription ID"],
-                            keyword.Unit
+                            pUnits
                         ),
                         "class": cName,
                         "name": eName,
                         "property": subInfo["Property"],
-                        "unit": keyword.Unit,
-                        "dType": keyword.Type,
+                        "unit": pUnits,
+                        "dType": pType,
                         "dStates": [self.init_state] * self.n_states,
                         "mult" : subInfo["Multiplier"]
                     }
@@ -94,6 +100,13 @@ class HELICS:
                         f"Object {cName}.{eName}'s {subInfo['Property']} property has subscribed to {subInfo['Subscription ID']}.")
 
         return
+
+    def listProperties(self, cName):
+        properties = self.cympy.dm.Describe(cName)
+        string = ""
+        for i, p in enumerate(properties):
+            string += f"{i}. {p.Name}\n"
+        return string
 
     def create_helics_federate(self):
         self.fedName = self.settings['Helics']['Federate name']
@@ -146,40 +159,59 @@ class HELICS:
                     self.__Logger.warn(f"Model of type {cName} not found in the distribution model")
         return
 
+    def isProperty(self,device, property):
+        properties = self.cympy.dm.Describe(device.GetObjType())
+        found = False
+        for p in properties:
+            if p.Name == property:
+                found = True
+                return found, p.Units, p.DefaultValue, p.Type
+
+        return found, None, None, None
+
+
     def create_publication(self, pubInfo, device, cName, eName):
-        for property in pubInfo["properties"]:
-            keyword = self.cympy.app.GetKeyword(property)
+        for propertyX in pubInfo["properties"]:
+            keyword = self.cympy.app.GetKeyword(propertyX)
             if keyword is None:
-                raise Exception(f"{property} is not valid property in CYME")
-            #value = device.GetValue(property)
-            res = self.cympy.study.QueryInfoDevice(property, device.DeviceNumber, device.DeviceType)
-            pubname = f"{self.fedName}.{cName}.{eName}.{property}"
+                found, units, defaultValue, cType = self.isProperty(device, propertyX)
+                if not found:
+                    raise Exception(f"{propertyX} is neither a valid keyword not a valid property of object type {cName}")
+                res = device.GetValue(propertyX)
+            else:
+                res = self.cympy.study.QueryInfoDevice(propertyX, device.DeviceNumber, device.DeviceType)
+            pubname = f"{self.fedName}.{cName}.{eName}.{propertyX}"
+            T = self.type_info[keyword.Type.lower()] if keyword is not None else self.type_info[cType]
             if res:
                 self.Publications[pubname] = {
                     "elementObj": device,
                     "publicationObj": h.helicsFederateRegisterGlobalTypePublication(
                         self.cymeFederate,
                         pubname,
-                        self.type_info[keyword.Type.lower()],
-                        keyword.Unit
+                        T,
+                        keyword.Unit if keyword is not None else units
                     ),
                     "class": cName,
                     "name": eName,
-                    "property": property,
-                    "unit": keyword.Unit,
-                    "dType": keyword.Type
+                    "property": propertyX,
+                    "unit": keyword.Unit if keyword is not None else units,
+                    "dType": keyword.Type if keyword is not None else cType,
+                    "isKeyword": True if keyword is not None else False
                 }
                 self.__Logger.debug(
-                    f"Publication {pubname} of type {self.type_info[keyword.Type.lower()]} registered successfully.")
+                    f"Publication {pubname} of type {T} registered successfully.")
             else:
-                self.__Logger.warning(f"Property {property} for publication {pubname} not valid")
+                self.__Logger.warning(f"Property {propertyX} for publication {pubname} not valid")
         return
 
     def update_publications(self):
         for pubName, pubInfo in self.Publications.items():
             device = pubInfo["elementObj"]
             pub = pubInfo["publicationObj"]
-            res = self.cympy.study.QueryInfoDevice(pubInfo["property"], device.DeviceNumber, device.DeviceType)
+            if pubInfo["isKeyword"]:
+                res = self.cympy.study.QueryInfoDevice(pubInfo["property"], device.DeviceNumber, device.DeviceType)
+            else:
+                res = pubInfo["elementObj"].GetValue(pubInfo["property"])
             #print(pubInfo["property"], res, type(res), pubInfo["dType"], pubInfo["unit"])
             if pubInfo["dType"].lower() == "complex":
                 h.helicsPublicationPublishComplex(pub, complex(res).real, complex(res).imag)
@@ -209,7 +241,7 @@ class HELICS:
 
             if value:
                 value = value * subInfo["mult"]
-                #self.cympy.study.SetValueDevice(value, subInfo['property'], device.DeviceNumber, device.DeviceType)
+                subInfo["elementObj"].SetValue(value, subInfo["property"])
                 self.__Logger.debug(f"{subInfo['class']}.{subInfo['name']}.{subInfo['property']} updated to {value}")
                 if self.settings['Helics']['Iterative Mode']:
                     if self.c_seconds != self.c_seconds_old:
