@@ -1,0 +1,36 @@
+[project]
+start_time = "2020-1-1 00:00:00.0"
+sim_duration_min = 1440.0
+time_step_min = 1
+max_iter = 50
+error_tolerance = 0.001
+simulation_type = "QSTS"
+project_path = ""
+mdb_file = ""
+sxst_file = ""
+cyme_installation_directory = "C:\\Program Files\\CYME\\CYME"
+
+[helics]
+cosimulation_mode = false
+coiter_mode = false
+coiter_error_tolerance = 0.1
+max_coiter = 20
+broker = "mainbroker"
+broker_port = 50001
+federate_name = "CYME"
+time_delta = 0.01
+core_type = "zmq"
+uninterruptible = true
+helics_logging_level = 5
+
+[logger]
+logging_level = "DEBUG"
+log_to_external_file = true
+display_on_screen = true
+clear_old_log_file = true
+pre_configured_logging = false
+
+[profiles]
+use_profiles = true
+use_internal_profile_manager = false
+profile_database = "EnergyProfiles.mdb"

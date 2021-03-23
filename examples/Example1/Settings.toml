@@ -1,41 +1,36 @@
-[Project]
-"Start Year" = 2017
-"Start Day" = 1
-"Start Time (min)" = 0.0
-"End Day" = 1
-"End Time (min)" = 31.0
-"Step resolution (min)" = 1
-"Max Control Iterations" = 50
-"Error tolerance" = 0.001
-"Control mode" = "Static"
-"Simulation Type" = "QSTS"
-"Project Path" = "C:\\Users\\alatif\\Desktop\\CYMEPY\\examples"
-"Active Project" = "Example1"
-"MDB File" = "Feeder1_2.mdb"
-"SXST File" = "Feeder1_2.sxst"
-"Cyme Installation Directory" = "C:\\Program Files\\CYME\\CYME"
+[project]
+start_time = "2020-1-1 00:00:00.0"
+sim_duration_min = 1440.0
+time_step_min = 1
+max_iter = 50
+error_tolerance = 0.001
+simulation_type = "QSTS"
+project_path = "C:\\Users\\alatif\\Desktop\\CYMEPY\\examples\\Example1"
+mdb_file = "Feeder1_2.mdb"
+sxst_file = "Feeder1_2.sxst"
+cyme_installation_directory = "C:\\Program Files\\CYME\\CYME"
 
-[Helics]
-"Co-simulation Mode" = true
-"Iterative Mode" = false
-"Error tolerance" = 0.1
-"Max co-iterations" = 20
-"Broker" = "mainbroker"
-"Broker port" = 50001
-"Federate name" = "PyDSS"
-"Time delta" = 0.01
-"Core type" = "zmq"
-Uninterruptible = true
-"Helics logging level" = 5
+[helics]
+cosimulation_mode = false
+coiter_mode = false
+coiter_error_tolerance = 0.1
+max_coiter = 20
+broker = "mainbroker"
+broker_port = 50001
+federate_name = "CYME"
+time_delta = 0.01
+core_type = "ZMQ"
+uninterruptible = true
+helics_logging_level = 5
 
-["Logger options"]
-"Logging Level" = "DEBUG"
-"Log to external file" = true
-"Display on screen" = true
-"Clear old log file" = true
-"Pre-configured logging" = false
+[logger]
+logging_level = "DEBUG"
+log_to_external_file = true
+display_on_screen = true
+clear_old_log_file = true
+pre_configured_logging = false
 
-["Profile settings"]
-"Use profiles" = true
-"Use internal profile manager" = false
-"profile database" = "EnergyProfiles.mdb"
+[profiles]
+use_profiles = true
+use_internal_profile_manager = false
+profile_database = "EnergyProfiles.mdb"

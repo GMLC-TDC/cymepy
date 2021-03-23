@@ -47,8 +47,7 @@ class HELICS:
 
     def registerSubscriptions(self):
         subpath = os.path.join(
-            self.settings["Project"]['Project Path'],
-            self.settings["Project"]['Active Project'],
+            self.settings["project"]['project_path'],
             CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE.value
         )
         subscriptionDict = toml.load(open(subpath, "r"))
@@ -109,29 +108,28 @@ class HELICS:
         return string
 
     def create_helics_federate(self):
-        self.fedName = self.settings['Helics']['Federate name']
+        self.fedName = self.settings['helics']['federate_name']
         self.fedinfo = h.helicsCreateFederateInfo()
-        h.helicsFederateInfoSetCoreName(self.fedinfo, self.settings['Helics']['Federate name'])
-        h.helicsFederateInfoSetCoreTypeFromString(self.fedinfo, self.settings['Helics']['Core type'])
+        h.helicsFederateInfoSetCoreName(self.fedinfo, self.settings['helics']['federate_name'])
+        h.helicsFederateInfoSetCoreTypeFromString(self.fedinfo, self.settings['helics']['core_type'])
         h.helicsFederateInfoSetCoreInitString(self.fedinfo, f"--federates=1")
-        # helics.helicsFederateInfoSetBroker(self.fedinfo, self._options['Helics']['Broker'])
-        # helics.helicsFederateInfoSetBrokerPort(self.fedinfo, self._options['Helics']['Broker port'])
+        h.helicsFederateInfoSetBroker(self.fedinfo, self.settings['helics']['broker'])
+        h.helicsFederateInfoSetBrokerPort(self.fedinfo ,self.settings['helics']['broker_port'])
         h.helicsFederateInfoSetTimeProperty(self.fedinfo, h.helics_property_time_delta,
-                                                 self.settings['Helics']['Time delta'])
+                                                 self.settings['helics']['time_delta'])
         h.helicsFederateInfoSetIntegerProperty(self.fedinfo, h.helics_property_int_log_level,
-                                                    self.settings['Helics']['Helics logging level'])
+                                                    self.settings['helics']['helics_logging_level'])
 
         h.helicsFederateInfoSetFlagOption(self.fedinfo, h.helics_flag_uninterruptible, True)
         h.helicsFederateInfoSetIntegerProperty(self.fedinfo, h.helics_property_int_max_iterations,
-                                                    self.settings["Helics"]["Max co-iterations"])
-        self.cymeFederate = h.helicsCreateValueFederate(self.settings['Helics']['Federate name'], self.fedinfo)
+                                                    self.settings["helics"]["max_coiter"])
+        self.cymeFederate = h.helicsCreateValueFederate(self.settings['helics']['federate_name'], self.fedinfo)
 
         return
 
     def registerPublications(self):
         pubpath = os.path.join(
-            self.settings["Project"]['Project Path'],
-            self.settings["Project"]['Active Project'],
+            self.settings["project"]['project_path'],
             CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE.value
         )
 
@@ -243,7 +241,7 @@ class HELICS:
                 value = value * subInfo["mult"]
                 subInfo["elementObj"].SetValue(value, subInfo["property"])
                 self.__Logger.debug(f"{subInfo['class']}.{subInfo['name']}.{subInfo['property']} updated to {value}")
-                if self.settings['Helics']['Iterative Mode']:
+                if self.settings['helics']['coiter_mode']:
                     if self.c_seconds != self.c_seconds_old:
                         subInfo["dStates"] = [self.init_state] * self.n_states
                     else:
@@ -254,7 +252,7 @@ class HELICS:
     def request_time_increment(self):
         error = sum([abs(x["dStates"][0] - x["dStates"][1]) for k, x in self.Subscriptions.items()])
         r_seconds = self.Solver.GetTotalSeconds()
-        if not self.settings['Helics']['Iterative Mode']:
+        if not self.settings['helics']['coiter_mode']:
             while self.c_seconds < r_seconds:
                 self.c_seconds = h.helicsFederateRequestTime(self.cymeFederate, r_seconds)
             self.__Logger.info('Time requested: {} - time granted: {} '.format(r_seconds, self.c_seconds))
@@ -267,7 +265,7 @@ class HELICS:
             )
             self.__Logger.info('Time requested: {} - time granted: {} error: {} it: {}'.format(
                 r_seconds, self.c_seconds, error, self.itr))
-            if error > -1 and self.itr < self.settings["Max co-iterations"]:
+            if error > -1 and self.itr < self.settings['helics']["max_coiter"]:
                 self.itr += 1
                 return False, self.c_seconds
             else:

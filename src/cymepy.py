@@ -1,4 +1,4 @@
-from src.validators import ValidateProjectSettings
+from src.validators import validate_settings
 from src.helics_interface import HELICS
 from src.solver import Solver
 import src.logger as Logger
@@ -7,14 +7,17 @@ import os
 class cymeInstance:
     def __init__(self, SettingsDict, N=None):
         self.SystemStates = []
-        self.settings = SettingsDict
-        ValidateProjectSettings(SettingsDict)
+        self.settings = validate_settings(SettingsDict)
 
         LoggerTag = 'CymeInstance' if N == None else 'CymeInstance_' + str(N)
-        self.__Logger = Logger.getLogger(LoggerTag, LoggerOptions=SettingsDict["Logger options"])
+        self.__Logger = Logger.getLogger(
+            LoggerTag,
+            LoggerOptions=SettingsDict["logger"],
+            logger_path=os.path.join(self.settings["project"]["project_path"], 'logs')
+        )
 
         import sys
-        sys.path.append(SettingsDict["Project"]['Cyme Installation Directory'])
+        sys.path.append(SettingsDict["project"]['cyme_installation_directory'])
         self.__Logger.info('Creating Cyme instance')
         try:
             import cympy
@@ -27,10 +30,9 @@ class cymeInstance:
 
         self.__Logger.info(cympy.version + ' created sucessfully.')
         self.projectPath = os.path.join(
-            SettingsDict["Project"]['Project Path'],
-            SettingsDict["Project"]['Active Project'],
+            SettingsDict["project"]['project_path'],
             "model",
-            SettingsDict["Project"]['SXST File']
+            SettingsDict["project"]['sxst_file']
         )
 
         if os.path.exists(self.projectPath):
@@ -43,8 +45,8 @@ class cymeInstance:
             raise Exception(f"Project path: {self.projectPath} does not exist")
 
         self.simObj = Solver(cympy, SettingsDict, self.__Logger)
-        self.HI = HELICS(SettingsDict, self.cympy, self.simObj, self.__Logger)
-
+        if self.settings["helics"]["cosimulation_mode"]:
+            self.HI = HELICS(SettingsDict, self.cympy, self.simObj, self.__Logger)
         return
 
     def UpdateLoadProfiles(self, ProfilePath):
@@ -54,7 +56,7 @@ class cymeInstance:
     def runSimulation(self):
         Steps, StartTime, EndTime = self.simObj.SimulationSteps()
         self.__Logger.info('Running simulation from time {} to {} at a time increment of {} minute/s.'.format(
-            StartTime, EndTime, self.settings['Project']['Step resolution (min)']
+            StartTime, EndTime, self.settings['project']['time_step_min']
         ))
         step = 0
         incFlag = False
@@ -65,10 +67,10 @@ class cymeInstance:
         return
 
     def runStep(self, increment_flag):
-        if self.settings['Helics']['Co-simulation Mode']:
+        if self.settings['helics']['cosimulation_mode']:
             self.HI.update_subscriptions()
 
-        if self.settings['Helics']['Co-simulation Mode']:
+        if self.settings['helics']['cosimulation_mode']:
             if increment_flag:
                 self.simObj.increment()
             else:
@@ -76,17 +78,15 @@ class cymeInstance:
         else:
             self.simObj.increment()
 
-        if self.settings['Helics']['Co-simulation Mode']:
+        if self.settings['helics']['cosimulation_mode']:
             increment_flag, helics_time = self.HI.request_time_increment()
             self.HI.update_publications()
             return increment_flag
-
-        return
+        return True
 
 
 if __name__ == "__main__":
     import toml
     Settings = toml.load(open(r"C:\Users\alatif\Desktop\CYMEPY\examples\Example1\Settings.toml"))
-    print(Settings)
     instance = cymeInstance(Settings)
     instance.runSimulation()

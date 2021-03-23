@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from src.common import DATE_FORMAT
 import math
 
 class Solver:
@@ -8,32 +9,23 @@ class Solver:
         self._Logger = logger
         self.cymepy = cymepy
 
-        self._mStepRes = settings['Project']['Step resolution (min)']
-        StartTimeMin = settings['Project']['Start Time (min)']
-        EndTimeMin = settings['Project']['End Time (min)']
+        self._mStepRes = settings['project']['time_step_min']
+        StartTimeMin = settings['project']['start_time']
+        duration_mins = settings['project']['sim_duration_min']
 
-        self._Time = datetime.strptime('{} {}'.format(
-            settings['Project']['Start Year'],
-            settings['Project']['Start Day']
-        ), '%Y %j')
-        self._Time = self._Time + timedelta(minutes=StartTimeMin)
+        self._Time = datetime.strptime(StartTimeMin, DATE_FORMAT)
         self._StartTime = self._Time
+        self._EndTime = self._StartTime + timedelta(minutes=duration_mins)
 
-        self._EndTime = datetime.strptime('{} {}'.format(
-            settings['Project']['Start Year'],
-            settings['Project']['End Day']
-        ), '%Y %j')
-        self._EndTime = self._EndTime + timedelta(minutes=EndTimeMin)
-
-        if settings['Project']["Simulation Type"] == "QSTS":
-            if self.Settings['Profile settings']["Use internal profile manager"]:
+        if settings['project']["simulation_type"] == "QSTS":
+            if self.Settings['profiles']["use_internal_profile_manager"]:
                 self.solverObj = cymepy.sim.LoadFlowWithProfiles()
                 self.solverObj.SetValue("TimeRangeMode", "Parameters.TimeParametersMode")
                 self.loadflowSettings(cymepy.sim.LoadFlow())
             else:
                 self.solverObj = cymepy.sim.LoadFlow()
                 self.loadflowSettings(self.solverObj)
-        elif settings['Project']["Simulation Type"] == "Static":
+        elif settings['project']["simulation_type"] == "Static":
             self.solverObj = cymepy.sim.LoadFlow()
             self.loadflowSettings(self.solverObj)
 
@@ -42,16 +34,16 @@ class Solver:
 
     def loadflowSettings(self, lf):
         lf.SetValue('VoltageDropUnbalanced', 'ParametersConfigurations[0].AnalysisMode')
-        lf.SetValue(self.Settings['Project']["Max Control Iterations"],
+        lf.SetValue(self.Settings['project']["max_iter"],
                                 'ParametersConfigurations[0].MaximumIterations')
-        lf.SetValue(self.Settings['Project']["Error tolerance"],
+        lf.SetValue(self.Settings['project']["error_tolerance"],
                                 'ParametersConfigurations[0].VoltageTolerance')
         return
 
     def increment(self):
-        if self.Settings['Project']["Simulation Type"] == "QSTS":
-            if self.Settings['Profile settings']["Use profiles"]:
-                if self.Settings['Profile settings']["Use internal profile manager"]:
+        if self.Settings['project']["simulation_type"] == "QSTS":
+            if self.Settings['profiles']["use_profiles"]:
+                if self.Settings['profiles']["use_internal_profile_manager"]:
                     self.solverObj.SetValue(int(self._Time.total_seconds()), "Parameters.TimeRangeStarting")
                     newTime = self._Time + timedelta(minutes=self._mStepRes)
                     self.solverObj.SetValue(newTime.total_seconds(), "Parameters.TimeRangeEnding")
@@ -63,7 +55,7 @@ class Solver:
 
             self._Time = self._Time + timedelta(minutes=self._mStepRes)
             self._Logger.debug(f"CYMEPY time: {self._Time}")
-        elif self.Settings['Project']["Simulation Type"] == "Static":
+        elif self.Settings['project']["simulation_type"] == "Static":
             raise Exception("'increment' method cannot be used in QSTS mode")
 
         return
