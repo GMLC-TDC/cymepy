@@ -2,21 +2,15 @@
 CLI to run a PyDSS project
 """
 
-import ast
+from src.common import CORE_CYMEPY_PROJECT_FILES
+from src.utils.utils import readToml
+from src.cymepy import cymeInstance
 import logging
-import os
-import sys
-
 import click
 
-from PyDSS.pydss_project import PyDssProject
-from PyDSS.loggers import setup_logging
-from PyDSS.utils.utils import get_cli_string, make_human_readable_size
-from PyDSS.common import SIMULATION_SETTINGS_FILENAME
-
+import os
 
 logger = logging.getLogger(__name__)
-
 
 @click.argument(
     "project-path",
@@ -25,13 +19,17 @@ logger = logging.getLogger(__name__)
 @click.option(
     "-s", "--simulations-file",
     required=False,
-    default = SIMULATION_SETTINGS_FILENAME,
+    default = CORE_CYMEPY_PROJECT_FILES.SIMULATION_FILE.value,
     show_default=True,
     help="scenario toml file to run (over rides default)",
 )
 
 @click.command()
 
-def run(project_path, simulations_file=None):
-   return
+def run(project_path, simulations_file):
+    file_path = os.path.join(project_path, simulations_file)
+    settings = readToml(file_path)
+    instance = cymeInstance(settings)
+    instance.runSimulation()
+    return
 
