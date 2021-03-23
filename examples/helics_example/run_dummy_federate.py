@@ -4,7 +4,7 @@ from math import pi
 import random
 import time
 import random
-initstring = "-f 2 --name=mainbroker"
+initstring = "-f 2 --name=mainbroker --port=50001"
 fedinitstring = "--broker=mainbroker --federates=1"
 deltat = 0.01
 
@@ -15,7 +15,7 @@ print("PI SENDER: Helics version = {}".format(helicsversion))
 # Create broker #
 print("Creating Broker")
 broker = h.helicsCreateBroker("zmq", "", initstring)
-#print(broker.address)
+#print(broker.port)
 print("Created Broker: ", broker)
 print("Checking if Broker is connected")
 isconnected = h.helicsBrokerIsConnected(broker)

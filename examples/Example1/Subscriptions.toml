@@ -1,0 +1,9 @@
+["DistributedLoad.318-1"]
+Property = "KWA"
+"Subscription ID" = "test.load1.power"
+Multiplier = 1
+
+["Source.DEMO-STATION-S1"]
+Property = "SourceKVLNOpA"
+"Subscription ID" = "test.feederhead.voltage"
+Multiplier = 1 

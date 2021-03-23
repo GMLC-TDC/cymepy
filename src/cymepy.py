@@ -1,3 +1,4 @@
+from src.common import CORE_CYMEPY_PROJECT_FILES
 from src.validators import validate_settings
 from src.helics_interface import HELICS
 from src.solver import Solver
@@ -7,8 +8,7 @@ import os
 class cymeInstance:
     def __init__(self, SettingsDict, N=None):
         self.SystemStates = []
-        self.settings = validate_settings(SettingsDict)
-
+        self.settings = validate_settings(SettingsDict, CORE_CYMEPY_PROJECT_FILES.SIMULATION_FILE)
         LoggerTag = 'CymeInstance' if N == None else 'CymeInstance_' + str(N)
         self.__Logger = Logger.getLogger(
             LoggerTag,
@@ -83,7 +83,6 @@ class cymeInstance:
             self.HI.update_publications()
             return increment_flag
         return True
-
 
 if __name__ == "__main__":
     import toml

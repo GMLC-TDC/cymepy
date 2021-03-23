@@ -1,0 +1,15 @@
+["InductionMotor"]
+"regex_filter" = "\\b\\d\\d.\\d"
+"properties" = ["kW"]
+
+["Transformer"]
+"regex_filter" = "\\b\\d\\d.\\d"
+"properties" = ["IA", "IB", "IC"]
+
+["DistributedLoad"]
+"regex_filter" = "\\b\\d-\\d"
+"properties" = ["IA", "IB", "IC"]
+
+["Source"]
+"regex_filter" = ""
+"properties" = ["KWTOT", "KVARTOT", "OperatingVoltageA"]

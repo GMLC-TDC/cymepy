@@ -1,5 +1,5 @@
-#import asd as asdasdas
 from src.common import CORE_CYMEPY_PROJECT_FILES
+from src.validators import validate_settings
 import helics as h
 import toml
 import os
@@ -50,7 +50,10 @@ class HELICS:
             self.settings["project"]['project_path'],
             CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE.value
         )
+
         subscriptionDict = toml.load(open(subpath, "r"))
+        subscriptionDict = validate_settings(subscriptionDict, CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE)
+
         self.Subscriptions = {}
         for elmCN, subInfo in subscriptionDict.items():
             cName, eName = elmCN.split(".")
@@ -134,8 +137,9 @@ class HELICS:
         )
 
         publicationDict = toml.load(open(pubpath, "r"))
-        self.Publications = {}
+        publicationDict = validate_settings(publicationDict, CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE)
 
+        self.Publications = {}
         for cName, pubInfo in publicationDict.items():
             if cName not in self.validTypes:
                 raise Exception(f"{cName} is not a valid CYME device type. "
@@ -146,8 +150,8 @@ class HELICS:
                 if devices:
                     for device in devices:
                         eName = device.DeviceNumber
-                        if pubInfo["regex filter"]:
-                            pattern = re.compile(pubInfo["regex filter"])
+                        if pubInfo["regex_filter"]:
+                            pattern = re.compile(pubInfo["regex_filter"])
                             matches = pattern.search(eName)
                             if matches:
                                 self.create_publication(pubInfo, device, cName, eName)

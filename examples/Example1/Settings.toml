@@ -11,11 +11,11 @@ sxst_file = "Feeder1_2.sxst"
 cyme_installation_directory = "C:\\Program Files\\CYME\\CYME"
 
 [helics]
-cosimulation_mode = false
+cosimulation_mode = true
 coiter_mode = false
 coiter_error_tolerance = 0.1
 max_coiter = 20
-broker = "mainbroker"
+broker = "127.0.0.1"
 broker_port = 50001
 federate_name = "CYME"
 time_delta = 0.01

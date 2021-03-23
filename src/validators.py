@@ -1,9 +1,11 @@
-from pydantic import BaseModel, ValidationError, validator, conint, confloat, PathError
 from src.common import DATE_FORMAT, CORE_CYMEPY_PROJECT_FILES, CYMEPY_FOLDER_STRUCTURE
+from pydantic import BaseModel, validator, conint, confloat
 from src.utils.utils import readToml
 from datetime import datetime
+from typing import List, Dict
 from enum import Enum
 import os
+import re
 
 class SIMULATION_TYPE(Enum):
     Static = "Static"
@@ -93,12 +95,39 @@ class Cymepy_Settings(BaseModel):
     logger: Logger_Settings
     profiles: Profile_Settings
 
+class PUBLICATION(BaseModel):
+    regex_filter: str
+    properties: List[str]
 
-def validate_settings(project_settings):
+    @validator('regex_filter')
+    def validate_regex_filter(cls, v):
+        try:
+            re.compile(v)
+        except re.error as e:
+            raise Exception(f"'{v}' is not a valid regular expression. Check https://docs.python.org/3/library/re.html")
+
+class PUBLICATIONS(BaseModel):
+    publication_dict: Dict[str, PUBLICATION]
+
+class SUBSCRIPTION(BaseModel):
+    property: str
+    subscription: str
+    multiplier: float
+
+class SUBSCRIPTIONS(BaseModel):
+    subscription_dict: Dict[str, SUBSCRIPTION]
+
+def validate_settings(project_settings, sType):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    settings_path = os.path.join(ROOT_DIR, "defaults", "settings.toml")
+    settings_path = os.path.join(ROOT_DIR, "defaults", sType.value)
     default_settings = readToml(settings_path)
     default_settings.update(project_settings)
-    settings = Cymepy_Settings(**default_settings)
+    if sType == CORE_CYMEPY_PROJECT_FILES.SIMULATION_FILE:
+        settings = Cymepy_Settings(**default_settings)
+    elif sType == CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE:
+        settings = PUBLICATIONS(publication_dict=default_settings)
+    elif sType == CORE_CYMEPY_PROJECT_FILES.SIMULATION_FILE:
+        settings = SUBSCRIPTIONS(subscription_dict=default_settings)
     return default_settings
+
 
