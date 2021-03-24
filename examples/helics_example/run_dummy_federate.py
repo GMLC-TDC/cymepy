@@ -47,7 +47,9 @@ h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, delta
 # Create value federate #
 vfed = h.helicsCreateValueFederate("Test Federate", fedinfo)
 print("PI SENDER: Value federate created")
-pub2 = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltage", "double", "kW")
+pubA = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltageA", "double", "kVLN")
+pubB = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltageB", "double", "kVLN")
+pubC = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltageC", "double", "kVLN")
 print("PI SENDER: Publication registered")
 sub1 = h.helicsFederateRegisterSubscription(vfed, "CYME.Source.DEMO-STATION-S1.KWTOT", "")
 sub1 = h.helicsFederateRegisterSubscription(vfed, "CYME.Source.DEMO-STATION-S1.KVARTOT", "")
@@ -69,10 +71,10 @@ for t in range(1, 30):
             time_requested,
             h.helics_iteration_request_iterate_if_needed
         )
-        h.helicsPublicationPublishDouble(pub1, 5.0 + 1. / (1.0 + i))
         print(iteration_state)
-        print("Published: {}".format((5.0 + 1. / (1.0 + i))))
-        h.helicsPublicationPublishDouble(pub2, 1.0 + random.random()/30)
+        h.helicsPublicationPublishDouble(pubA, 14.376 + random.random()/30)
+        h.helicsPublicationPublishDouble(pubB, 14.376 + random.random()/30)
+        h.helicsPublicationPublishDouble(pubC, 14.376 + random.random()/30)
         value = h.helicsInputGetVector(sub1)
         print("PyDSS.Circuit.heco19021.TotalPower: {} kW @ time: {}".format(value, currenttime))
         #i+=1

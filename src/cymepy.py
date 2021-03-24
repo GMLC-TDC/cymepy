@@ -35,6 +35,18 @@ class cymeInstance:
             SettingsDict["project"]['sxst_file']
         )
 
+        if self.settings["profiles"]["use_profiles"] and  self.settings["profiles"]["use_internal_profile_manager"]:
+            if self.settings['project']["mdb_file"]:
+                print(dir(cympy))
+                conn_info = cympy.db.ConnectionInformation()
+                profiles_path = os.path.join(
+                    self.settings['project']["project_path"],
+                    self.settings['project']["mdb_file"]
+                )
+                assert os.path.exists(profiles_path), f"The profiles file: {profiles_path} does not exist"
+                conn_info.LoadProfile.Path = profiles_path
+                cympy.db.Connect(conn_info)
+
         if os.path.exists(self.projectPath):
             try:
                 cympy.study.Open(self.projectPath)
@@ -69,6 +81,7 @@ class cymeInstance:
     def runStep(self, increment_flag):
         if self.settings['helics']['cosimulation_mode']:
             self.HI.update_subscriptions()
+            pass
 
         if self.settings['helics']['cosimulation_mode']:
             if increment_flag:
@@ -82,7 +95,8 @@ class cymeInstance:
             increment_flag, helics_time = self.HI.request_time_increment()
             self.HI.update_publications()
             return increment_flag
-        return True
+        else:
+            return True
 
 if __name__ == "__main__":
     import toml

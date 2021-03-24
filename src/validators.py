@@ -109,7 +109,7 @@ class PUBLICATION(BaseModel):
             raise Exception(f"'{v}' is not a valid regular expression. Check https://docs.python.org/3/library/re.html")
 
 class PUBLICATIONS(BaseModel):
-    publication_dict: Dict[str, PUBLICATION]
+    publication_dict: Dict[str, List[PUBLICATION]]
 
 class SUBSCRIPTION(BaseModel):
     property: str
@@ -117,7 +117,7 @@ class SUBSCRIPTION(BaseModel):
     multiplier: float
 
 class SUBSCRIPTIONS(BaseModel):
-    subscription_dict: Dict[str, SUBSCRIPTION]
+    subscription_dict: Dict[str, List[SUBSCRIPTION]]
 
 def validate_settings(project_settings, sType):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -128,7 +128,8 @@ def validate_settings(project_settings, sType):
         settings = Cymepy_Settings(**default_settings)
     elif sType == CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE:
         settings = PUBLICATIONS(publication_dict=default_settings)
-    elif sType == CORE_CYMEPY_PROJECT_FILES.SIMULATION_FILE:
+    elif sType == CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE:
+        print(project_settings)
         settings = SUBSCRIPTIONS(subscription_dict=default_settings)
     return default_settings
 

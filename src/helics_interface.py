@@ -46,6 +46,7 @@ class HELICS:
         logger.info('Entered HELICS execution mode')
 
     def registerSubscriptions(self):
+        self.__Logger.info("Creating subscriptions")
         subpath = os.path.join(
             self.settings["project"]['project_path'],
             CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE.value
@@ -55,51 +56,52 @@ class HELICS:
         subscriptionDict = validate_settings(subscriptionDict, CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE)
 
         self.Subscriptions = {}
-        for elmCN, subInfo in subscriptionDict.items():
-            cName, eName = elmCN.split(".")
-            if cName not in self.validTypes:
-                raise Exception(f"{cName} is not a valid CYME device type. "
-                                f"For valid device type, see cympy.enums.DeviceType")
-            else:
-                devType = getattr(self.cympy.enums.DeviceType, cName)
-                devices = self.cympy.study.ListDevices(devType)
-                found = False
-                fDevice = None
-                for device in devices:
-                    if eName == device.DeviceNumber:
-                        found = True
-                        fDevice = device
-                        break
-                if not found:
-                    raise Exception(f"Element {eName} for class {cName} not found. See subscriptions")
+        for elmCN, subInfoList in subscriptionDict.items():
+            for subInfo in subInfoList:
+                cName, eName = elmCN.split(".")
+                if cName not in self.validTypes:
+                    raise Exception(f"{cName} is not a valid CYME device type. "
+                                    f"For valid device type, see cympy.enums.DeviceType")
                 else:
-                    found, pUnits, pDefaultValue, pType = self.isProperty(fDevice, subInfo["Property"])
-
+                    devType = getattr(self.cympy.enums.DeviceType, cName)
+                    devices = self.cympy.study.ListDevices(devType)
+                    found = False
+                    fDevice = None
+                    for device in devices:
+                        if eName == device.DeviceNumber:
+                            found = True
+                            fDevice = device
+                            break
                     if not found:
-                        raise Exception("{} is not a valid property for {}.\nValid options are:\n{}".format(
-                            subInfo['Property'],
-                            cName,
-                            self.listProperties(cName)
-                        ))
+                        raise Exception(f"Element {eName} for class {cName} not found. See subscriptions")
+                    else:
 
-                    subname = subInfo["Subscription ID"]
-                    self.Subscriptions[subname] = {
-                        "elementObj": fDevice,
-                        "subscriptionObj": h.helicsFederateRegisterSubscription(
-                            self.cymeFederate,
-                            subInfo["Subscription ID"],
-                            pUnits
-                        ),
-                        "class": cName,
-                        "name": eName,
-                        "property": subInfo["Property"],
-                        "unit": pUnits,
-                        "dType": pType,
-                        "dStates": [self.init_state] * self.n_states,
-                        "mult" : subInfo["Multiplier"]
-                    }
-                    self.__Logger.debug(
-                        f"Object {cName}.{eName}'s {subInfo['Property']} property has subscribed to {subInfo['Subscription ID']}.")
+                        found, pUnits, pDefaultValue, pType = self.isProperty(fDevice, subInfo["property"])
+                        if not found:
+                            raise Exception("{} is not a valid property for {}.\nValid options are:\n{}".format(
+                                subInfo['property'],
+                                cName,
+                                self.listProperties(cName)
+                            ))
+
+                        subname = subInfo["subscription"]
+                        self.Subscriptions[subname] = {
+                            "elementObj": fDevice,
+                            "subscriptionObj": h.helicsFederateRegisterSubscription(
+                                self.cymeFederate,
+                                subInfo["subscription"],
+                                pUnits
+                            ),
+                            "class": cName,
+                            "name": eName,
+                            "property": subInfo["property"],
+                            "unit": pUnits,
+                            "dType": pType,
+                            "dStates": [self.init_state] * self.n_states,
+                            "mult" : subInfo["multiplier"]
+                        }
+                        self.__Logger.debug(
+                            f"Object {cName}.{eName}'s {subInfo['property']} property has subscribed to {subInfo['subscription']}.")
 
         return
 
@@ -140,25 +142,26 @@ class HELICS:
         publicationDict = validate_settings(publicationDict, CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE)
 
         self.Publications = {}
-        for cName, pubInfo in publicationDict.items():
-            if cName not in self.validTypes:
-                raise Exception(f"{cName} is not a valid CYME device type. "
-                                f"For valid device type, see cympy.enums.DeviceType")
-            else:
-                devType = getattr(self.cympy.enums.DeviceType, cName)
-                devices = self.cympy.study.ListDevices(devType)
-                if devices:
-                    for device in devices:
-                        eName = device.DeviceNumber
-                        if pubInfo["regex_filter"]:
-                            pattern = re.compile(pubInfo["regex_filter"])
-                            matches = pattern.search(eName)
-                            if matches:
-                                self.create_publication(pubInfo, device, cName, eName)
-                        else:
-                            self.create_publication(pubInfo, device, cName, eName)
+        for cName, pubInfoList in publicationDict.items():
+            for pubInfo in pubInfoList:
+                if cName not in self.validTypes:
+                    raise Exception(f"{cName} is not a valid CYME device type. "
+                                    f"For valid device type, see cympy.enums.DeviceType")
                 else:
-                    self.__Logger.warn(f"Model of type {cName} not found in the distribution model")
+                    devType = getattr(self.cympy.enums.DeviceType, cName)
+                    devices = self.cympy.study.ListDevices(devType)
+                    if devices:
+                        for device in devices:
+                            eName = device.DeviceNumber
+                            if pubInfo["regex_filter"]:
+                                pattern = re.compile(pubInfo["regex_filter"])
+                                matches = pattern.search(eName)
+                                if matches:
+                                    self.create_publication(pubInfo, device, cName, eName)
+                            else:
+                                self.create_publication(pubInfo, device, cName, eName)
+                    else:
+                        self.__Logger.warn(f"Model of type {cName} not found in the distribution model")
         return
 
     def isProperty(self,device, property):
@@ -171,8 +174,8 @@ class HELICS:
 
         return found, None, None, None
 
-
     def create_publication(self, pubInfo, device, cName, eName):
+        self.__Logger.info("Creating publications")
         for propertyX in pubInfo["properties"]:
             keyword = self.cympy.app.GetKeyword(propertyX)
             if keyword is None:
@@ -214,7 +217,9 @@ class HELICS:
                 res = self.cympy.study.QueryInfoDevice(pubInfo["property"], device.DeviceNumber, device.DeviceType)
             else:
                 res = pubInfo["elementObj"].GetValue(pubInfo["property"])
-            #print(pubInfo["property"], res, type(res), pubInfo["dType"], pubInfo["unit"])
+
+            print(pubInfo["property"], res, type(res), pubInfo["dType"], pubInfo["unit"])
+
             if pubInfo["dType"].lower() == "complex":
                 h.helicsPublicationPublishComplex(pub, complex(res).real, complex(res).imag)
             elif pubInfo["dType"].lower() == 'real':
@@ -223,15 +228,12 @@ class HELICS:
                 h.helicsPublicationPublishString(pub, str(res))
             elif pubInfo["dType"].lower() == "number":
                 h.helicsPublicationPublishInteger(pub, int(res))
+
         return
 
     def update_subscriptions(self):
         for subName, subInfo in self.Subscriptions.items():
-            device = subInfo["elementObj"]
             sub = subInfo["subscriptionObj"]
-
-            value = None
-
             if subInfo["dType"].lower() == "complex":
                 value = h.helicsInputGetComplex(sub)
             elif subInfo["dType"].lower() == 'real':
@@ -240,10 +242,22 @@ class HELICS:
                 value = h.helicsInputGetString(sub)
             elif subInfo["dType"].lower() == "number":
                 value = h.helicsInputGetInteger(sub)
+            else:
+                value = h.helicsInputGetDouble(sub)
 
             if value:
                 value = value * subInfo["mult"]
+                X1 = subInfo["elementObj"].GetValue(subInfo["property"])
                 subInfo["elementObj"].SetValue(value, subInfo["property"])
+                # self.cympy.study.SetValueDevice(
+                #     value,
+                #     subInfo["property"],
+                #     subInfo["elementObj"].DeviceNumber,
+                #     subInfo["elementObj"].DeviceType
+                # )
+                #
+                X2 = subInfo["elementObj"].GetValue(subInfo["property"])
+                print(X1, value, X2)
                 self.__Logger.debug(f"{subInfo['class']}.{subInfo['name']}.{subInfo['property']} updated to {value}")
                 if self.settings['helics']['coiter_mode']:
                     if self.c_seconds != self.c_seconds_old:
@@ -251,6 +265,7 @@ class HELICS:
                     else:
                         subInfo["dStates"].insert(0, subInfo["dStates"].pop())
                     subInfo["dStates"][0] = value
+        #self.cympy.study.Save()
         return
 
     def request_time_increment(self):

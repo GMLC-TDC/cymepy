@@ -1,9 +1,14 @@
-["DistributedLoad.318-1"]
-Property = "KWA"
-"Subscription ID" = "test.load1.power"
-Multiplier = 1
+[["Source.DEMO-STATION-S1"]]
+property = "OperatingVoltageA"
+subscription = "test.feederhead.voltageA"
+multiplier = 1
 
-["Source.DEMO-STATION-S1"]
-Property = "SourceKVLNOpA"
-"Subscription ID" = "test.feederhead.voltage"
-Multiplier = 1
+[["Source.DEMO-STATION-S1"]]
+property = "OperatingVoltageB"
+subscription = "test.feederhead.voltageB"
+multiplier = 1
+
+[["Source.DEMO-STATION-S1"]]
+property = "OperatingVoltageC"
+subscription = "test.feederhead.voltageC"
+multiplier = 1
