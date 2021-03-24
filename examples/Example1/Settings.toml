@@ -32,5 +32,5 @@ pre_configured_logging = false
 
 [profiles]
 use_profiles = true
-use_internal_profile_manager = true
+use_internal_profile_manager = false
 profile_database = "EnergyProfiles.mdb"

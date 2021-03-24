@@ -1,7 +1,8 @@
-from src.common import CORE_CYMEPY_PROJECT_FILES
+from src.common import CORE_CYMEPY_PROJECT_FILES, DEVICES_WITH_MEMORY
 from src.validators import validate_settings
 from src.helics_interface import HELICS
 from src.solver import Solver
+from src.device_obj import DEVICE
 import src.logger as Logger
 import os
 
@@ -28,6 +29,7 @@ class cymeInstance:
             self.__Logger.error('Cyme module not found.')
             raise Exception("Cyme module not found.")
 
+        print(dir(cympy.enums.DeviceType))
         self.__Logger.info(cympy.version + ' created sucessfully.')
         self.projectPath = os.path.join(
             SettingsDict["project"]['project_path'],
@@ -35,7 +37,7 @@ class cymeInstance:
             SettingsDict["project"]['sxst_file']
         )
 
-        if self.settings["profiles"]["use_profiles"] and  self.settings["profiles"]["use_internal_profile_manager"]:
+        if self.settings["profiles"]["use_profiles"] and self.settings["profiles"]["use_internal_profile_manager"]:
             if self.settings['project']["mdb_file"]:
                 print(dir(cympy))
                 conn_info = cympy.db.ConnectionInformation()
@@ -57,9 +59,27 @@ class cymeInstance:
             raise Exception(f"Project path: {self.projectPath} does not exist")
 
         self.simObj = Solver(cympy, SettingsDict, self.__Logger)
+
+        self.devices = {}
+        if self.settings['project']["simulation_type"] == "QSTS":
+            for elm_type in DEVICES_WITH_MEMORY:
+                self.devices[elm_type] = self.get_devices(elm_type, DEVICES_WITH_MEMORY[elm_type])
+
+        print(self.devices)
+
         if self.settings["helics"]["cosimulation_mode"]:
             self.HI = HELICS(SettingsDict, self.cympy, self.simObj, self.__Logger)
+
         return
+
+    def get_devices(self, elm_type, var_list):
+        enumerator = getattr(self.cympy.enums.DeviceType, elm_type)
+        devices = self.cympy.study.ListDevices(enumerator)
+        print(devices)
+        device_dict = {}
+        for device in devices:
+            device_dict[device.DeviceNumber] = DEVICE(self.cympy, device, var_list)
+        return device_dict
 
     def UpdateLoadProfiles(self, ProfilePath):
 
@@ -79,6 +99,9 @@ class cymeInstance:
         return
 
     def runStep(self, increment_flag):
+
+        self.restore_states()
+
         if self.settings['helics']['cosimulation_mode']:
             self.HI.update_subscriptions()
             pass
@@ -91,12 +114,26 @@ class cymeInstance:
         else:
             self.simObj.increment()
 
+        self.save_states()
+
         if self.settings['helics']['cosimulation_mode']:
             increment_flag, helics_time = self.HI.request_time_increment()
             self.HI.update_publications()
             return increment_flag
         else:
             return True
+
+    def save_states(self):
+        for cName, devices in self.devices.items():
+            for dName, device in devices.items():
+                device.save_state()
+        return
+
+    def restore_states(self):
+        for cName, devices in self.devices.items():
+            for dName, device in devices.items():
+                device.restore_state()
+        return
 
 if __name__ == "__main__":
     import toml

@@ -125,12 +125,11 @@ def validate_settings(project_settings, sType):
     default_settings = readToml(settings_path)
     default_settings.update(project_settings)
     if sType == CORE_CYMEPY_PROJECT_FILES.SIMULATION_FILE:
-        settings = Cymepy_Settings(**default_settings)
+        Cymepy_Settings(**default_settings)
     elif sType == CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE:
-        settings = PUBLICATIONS(publication_dict=default_settings)
+        PUBLICATIONS(publication_dict=default_settings)
     elif sType == CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE:
-        print(project_settings)
-        settings = SUBSCRIPTIONS(subscription_dict=default_settings)
+        SUBSCRIPTIONS(subscription_dict=default_settings)
     return default_settings
 
 
