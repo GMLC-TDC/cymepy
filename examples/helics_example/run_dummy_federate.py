@@ -58,7 +58,7 @@ sub1 = h.helicsFederateRegisterSubscription(vfed, "CYME.Source.DEMO-STATION-S1.K
 # Enter execution mode #
 h.helicsFederateEnterExecutingMode(vfed)
 
-
+basevolt = 4.16
 
 for t in range(1, 30):
     time_requested = t * 60
@@ -72,9 +72,9 @@ for t in range(1, 30):
             h.helics_iteration_request_iterate_if_needed
         )
         print(iteration_state)
-        h.helicsPublicationPublishDouble(pubA, 14.376 + random.random()/30)
-        h.helicsPublicationPublishDouble(pubB, 14.376 + random.random()/30)
-        h.helicsPublicationPublishDouble(pubC, 14.376 + random.random()/30)
+        h.helicsPublicationPublishDouble(pubA, basevolt + random.random()/30)
+        h.helicsPublicationPublishDouble(pubB, basevolt + random.random()/30)
+        h.helicsPublicationPublishDouble(pubC, basevolt + random.random()/30)
         value = h.helicsInputGetVector(sub1)
         print("PyDSS.Circuit.heco19021.TotalPower: {} kW @ time: {}".format(value, currenttime))
         #i+=1

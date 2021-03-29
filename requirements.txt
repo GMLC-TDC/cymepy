@@ -3,3 +3,5 @@ helics
 terminaltables
 click
 pydantic
+toml
+h5py

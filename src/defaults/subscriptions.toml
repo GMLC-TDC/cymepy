@@ -1,14 +1,5 @@
-[["Source.DEMO-STATION-S1"]]
-property = "OperatingVoltageA"
-subscription = "test.feederhead.voltageA"
-multiplier = 1
+#[["Source.SUB650WYE-S2"]]
+#property = "OperatingVoltageA"
+#subscription = "test.feederhead.voltageA"
+#ultiplier = 1
 
-[["Source.DEMO-STATION-S1"]]
-property = "OperatingVoltageB"
-subscription = "test.feederhead.voltageB"
-multiplier = 1
-
-[["Source.DEMO-STATION-S1"]]
-property = "OperatingVoltageC"
-subscription = "test.feederhead.voltageC"
-multiplier = 1

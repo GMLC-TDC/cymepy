@@ -1,5 +1,6 @@
 from src.common import DATE_FORMAT, CORE_CYMEPY_PROJECT_FILES, CYMEPY_FOLDER_STRUCTURE
 from pydantic import BaseModel, validator, conint, confloat
+from src.profile_manager.common import PROFILE_SOURCE_TYPES
 from src.utils.utils import readToml
 from datetime import datetime
 from typing import List, Dict
@@ -29,7 +30,7 @@ class HELICS_CORE_TYPE(Enum):
 
 class Project_Settings(BaseModel):
     start_time: str
-    sim_duration_min: conint(ge=1)
+    end_time: str
     time_step_min: conint(ge=1)
     max_iter: conint(ge=1, le=1000)
     error_tolerance: confloat(gt=0)
@@ -45,6 +46,14 @@ class Project_Settings(BaseModel):
             Date = datetime.strptime(v, DATE_FORMAT)
         except:
             raise ValueError("'start_time' should be a datetime string with format {}".format( DATE_FORMAT  ))
+        pass
+
+    @validator('end_time')
+    def validate_end_time(cls, v):
+        try:
+            Date = datetime.strptime(v, DATE_FORMAT)
+        except:
+            raise ValueError("'end_time' should be a datetime string with format {}".format(DATE_FORMAT))
         pass
 
     @validator('cyme_installation_directory')
@@ -89,7 +98,9 @@ class Logger_Settings(BaseModel):
 class Profile_Settings(BaseModel):
     use_profiles: bool
     use_internal_profile_manager: bool
-    profile_database: str
+    source_type = PROFILE_SOURCE_TYPES
+    source = str
+    is_relavtive_path = bool
 
 class Cymepy_Settings(BaseModel):
     project: Project_Settings

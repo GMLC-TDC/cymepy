@@ -1,6 +1,6 @@
 [project]
 start_time = "2017-1-1 00:00:00.0"
-sim_duration_min = 5.0
+end_time = "2017-1-2 00:00:00.0"
 time_step_min = 1
 max_iter = 50
 error_tolerance = 0.001
@@ -8,7 +8,7 @@ simulation_type = "QSTS"
 project_path = "C:\\Users\\alatif\\Desktop\\CYMEPY\\examples\\Example1"
 mdb_file = "Feeder1_2.mdb"
 sxst_file = "Feeder1_2.sxst"
-cyme_installation_directory = "C:\\Program Files\\CYME\\CYME"
+cyme_installation_directory = "C:\\Program Files (x86)\\CYME\\CYME"
 
 [helics]
 cosimulation_mode = true
@@ -32,5 +32,7 @@ pre_configured_logging = false
 
 [profiles]
 use_profiles = true
-use_internal_profile_manager = false
-profile_database = "EnergyProfiles.mdb"
+use_internal_profile_manager = true
+source_type = "h5"
+source = "EnergyProfiles.mdb"
+is_relavtive_path = true

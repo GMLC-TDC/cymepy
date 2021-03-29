@@ -6,6 +6,8 @@ from src.device_obj import DEVICE
 import src.logger as Logger
 import os
 
+from src.profile_manager.hooks.HDF5 import ProfileManager
+
 class cymeInstance:
     def __init__(self, SettingsDict, N=None):
         self.SystemStates = []
@@ -23,31 +25,33 @@ class cymeInstance:
         try:
             import cympy
             import cympy.rm
-            cympy.app.ActivateRefresh(True)
+            import cympy.db
+            cympy.app.ActivateRefresh(False)
             self.cympy = cympy
         except:
             self.__Logger.error('Cyme module not found.')
             raise Exception("Cyme module not found.")
 
-        print(dir(cympy.enums.DeviceType))
+        if self.settings["profiles"]["use_profiles"] and self.settings["profiles"]["use_internal_profile_manager"]:
+            if self.settings['project']["mdb_file"]:
+                conn_info = cympy.db.ConnectionInformation()
+                profiles_path = os.path.join(
+                    self.settings['project']["project_path"],
+                    'model',
+                    self.settings['project']["mdb_file"]
+                )
+                assert os.path.exists(profiles_path), f"The profiles file: {profiles_path} does not exist"
+                conn_info.LoadProfile = cympy.db.MDBDataSource()
+                conn_info.LoadProfile.Path = profiles_path
+                cympy.db.Connect(conn_info)
+
+        print(dir(cympy.enums.DeviceType()))
         self.__Logger.info(cympy.version + ' created sucessfully.')
         self.projectPath = os.path.join(
             SettingsDict["project"]['project_path'],
             "model",
             SettingsDict["project"]['sxst_file']
         )
-
-        if self.settings["profiles"]["use_profiles"] and self.settings["profiles"]["use_internal_profile_manager"]:
-            if self.settings['project']["mdb_file"]:
-                print(dir(cympy))
-                conn_info = cympy.db.ConnectionInformation()
-                profiles_path = os.path.join(
-                    self.settings['project']["project_path"],
-                    self.settings['project']["mdb_file"]
-                )
-                assert os.path.exists(profiles_path), f"The profiles file: {profiles_path} does not exist"
-                conn_info.LoadProfile.Path = profiles_path
-                cympy.db.Connect(conn_info)
 
         if os.path.exists(self.projectPath):
             try:
@@ -59,13 +63,13 @@ class cymeInstance:
             raise Exception(f"Project path: {self.projectPath} does not exist")
 
         self.simObj = Solver(cympy, SettingsDict, self.__Logger)
-
+        self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
         self.devices = {}
         if self.settings['project']["simulation_type"] == "QSTS":
             for elm_type in DEVICES_WITH_MEMORY:
                 self.devices[elm_type] = self.get_devices(elm_type, DEVICES_WITH_MEMORY[elm_type])
 
-        print(self.devices)
+        #print(self.devices)
 
         if self.settings["helics"]["cosimulation_mode"]:
             self.HI = HELICS(SettingsDict, self.cympy, self.simObj, self.__Logger)
@@ -75,7 +79,7 @@ class cymeInstance:
     def get_devices(self, elm_type, var_list):
         enumerator = getattr(self.cympy.enums.DeviceType, elm_type)
         devices = self.cympy.study.ListDevices(enumerator)
-        print(devices)
+        #print(devices)
         device_dict = {}
         for device in devices:
             device_dict[device.DeviceNumber] = DEVICE(self.cympy, device, var_list)
@@ -99,9 +103,8 @@ class cymeInstance:
         return
 
     def runStep(self, increment_flag):
-
         self.restore_states()
-
+        self.profile_manager.update()
         if self.settings['helics']['cosimulation_mode']:
             self.HI.update_subscriptions()
             pass
@@ -137,6 +140,6 @@ class cymeInstance:
 
 if __name__ == "__main__":
     import toml
-    Settings = toml.load(open(r"C:\Users\alatif\Desktop\CYMEPY\examples\Example1\Settings.toml"))
+    Settings = toml.load(open(r"C:\Users\alatif\Desktop\CYMEPY\examples\LFwithProfiles\Settings.toml"))
     instance = cymeInstance(Settings)
     instance.runSimulation()

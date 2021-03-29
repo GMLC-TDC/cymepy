@@ -54,7 +54,7 @@ class HELICS:
 
         subscriptionDict = toml.load(open(subpath, "r"))
         subscriptionDict = validate_settings(subscriptionDict, CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE)
-
+        print(subscriptionDict)
         self.Subscriptions = {}
         for elmCN, subInfoList in subscriptionDict.items():
             for subInfo in subInfoList:
@@ -65,6 +65,7 @@ class HELICS:
                 else:
                     devType = getattr(self.cympy.enums.DeviceType, cName)
                     devices = self.cympy.study.ListDevices(devType)
+                    print(devices)
                     found = False
                     fDevice = None
                     for device in devices:

@@ -12,11 +12,11 @@ class Solver:
 
         self._mStepRes = settings['project']['time_step_min']
         StartTimeMin = settings['project']['start_time']
-        duration_mins = settings['project']['sim_duration_min']
+        EndTimeMin = settings['project']['end_time']
 
         self._Time = datetime.strptime(StartTimeMin, DATE_FORMAT)
         self._StartTime = self._Time
-        self._EndTime = self._StartTime + timedelta(minutes=duration_mins)
+        self._EndTime = datetime.strptime(EndTimeMin, DATE_FORMAT)
 
         if settings['project']["simulation_type"] == "QSTS":
             if self.Settings['profiles']["use_internal_profile_manager"]:
@@ -49,14 +49,14 @@ class Solver:
                 if self.Settings['profiles']["use_internal_profile_manager"]:
                     self.solverObj.SetValue(int(self._Time.timestamp()), "Parameters.TimeRangeStarting")
                     newTime = self._Time + timedelta(minutes=self._mStepRes)
-                    self.solverObj.SetValue(newTime.timestamp(), "Parameters.TimeRangeEnding")
+                    self.solverObj.SetValue(int(newTime.timestamp()), "Parameters.TimeRangeEnding")
                     self.solverObj.SetValue(int(self._mStepRes), "Parameters.TimeInterval")
                     a = self.solverObj.Run()
-                    print("LoadflowA: ", a)
-                    self._Logger.debug(f"CYME internal time: {newTime}")
+                    endTime = self.solverObj.GetValue('Parameters.TimeRangeEnding')
+                    endTime= datetime.fromtimestamp(int(endTime))
+                    self._Logger.debug(f"CYME internal time: {endTime}")
                 else:
                     a = self.solverObj.Run()
-                    print("LoadflowB: ", a)
 
             self._Time = self._Time + timedelta(minutes=self._mStepRes)
             self._Logger.debug(f"CYMEPY time: {self._Time}")
@@ -76,3 +76,6 @@ class Solver:
 
     def GetTotalSeconds(self):
         return (self._Time - self._StartTime).total_seconds()
+
+    def GetDateTime(self):
+        return self._Time

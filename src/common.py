@@ -9,9 +9,8 @@ class CORE_CYMEPY_PROJECT_FILES(enum.Enum):
     SIMULATION_FILE = "Settings.toml"
     PUBLICATION_FILE = "Publications.toml"
     SUBSCRIPTION_FILE = "Subscriptions.toml"
-    PROFILE_MAPPING = "Mapping.toml"
+    MAPPING_FILE = "Mapping.toml"
     PROFILES = "Profiles.hdf5"
-
 
 DEVICES_WITH_MEMORY = {
     'BESS': [],
