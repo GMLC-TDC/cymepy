@@ -9,9 +9,19 @@ DEFAULT_PROFILE_SETTINGS = {
 
 FIELD_MAP = {
     "SpotLoad": {
-        "kw": "LoadValue.KW",
-        "kva": "SpotKVAT",
-        "kvar": "SpotKVART",
+        "kw": [
+            "CustomerLoads.Get(",
+            ").CustomerLoadModels.Get(1)"
+        ],
+        "kva": [
+            "CustomerLoads.Get(",
+            ").CustomerLoadModels.Get(1)",
+            ".CustomerLoadValues.Get(ABC).LoadValue"
+        ],
+        "kvar": [
+            "CustomerLoads.Get(",
+            ").CustomerLoadModels.Get(1)"
+        ],
     }
 }
 

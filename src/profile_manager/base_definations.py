@@ -38,7 +38,7 @@ class BaseProfileManager(abc.ABC):
 
 
 class BaseProfile(abc.ABC):
-    def __init__(self,sim_instance, dataset, devices, solver, mapping_dict, logger, **kwargs):
+    def __init__(self, sim_instance, dataset, devices, solver, mapping_dict, logger, **kwargs):
         self.sim_instance = sim_instance
         self.mapping_dict = mapping_dict
         self.dataset = dataset

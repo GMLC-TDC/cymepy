@@ -1,6 +1,7 @@
 from src.profile_manager.common import PROFILE_TYPES, DEFAULT_PROFILE_SETTINGS, FIELD_MAP
 from src.profile_manager.base_definations import BaseProfileManager, BaseProfile
 from src.common import DATE_FORMAT
+import numpy as np
 import datetime
 import h5py
 import copy
@@ -73,11 +74,21 @@ class ProfileManager(BaseProfileManager):
         pass
 
 class Profile(BaseProfile):
+
+
+
     def __init__(self, sim_instance, dataset, devices, solver, mapping_dict, logger, **kwargs):
         super(Profile, self).__init__(sim_instance, dataset, devices, solver, mapping_dict, logger, **kwargs)
         self.valueSettings = {x['object']: {**DEFAULT_PROFILE_SETTINGS, **x} for x in mapping_dict}
         self.attrs = self.dataset.attrs
         self.update_profile_settings()
+
+        self.isLoad = [
+            self.sim_instance.enums.DeviceType.DCLoad,
+            self.sim_instance.enums.DeviceType.SpotLoad,
+            self.sim_instance.enums.DeviceType.DistributedLoad,
+        ]
+
         pass
 
     def update_profile_settings(self):
@@ -109,11 +120,36 @@ class Profile(BaseProfile):
                 valueF = value / self.attrs["max"] * mult
             else:
                 valueF = value * mult
-            #ppty = FIELD_MAP[class_name][self.attrs["units"].decode()]
-            ppty = f"CustomerLoads.Get({obj.DeviceNumber}).CustomerLoadModels.Get(1).CustomerLoadValues.Get(A).LoadValue.KVA"
-            #kw =obj.GetValue(f"CustomerLoads.Get({obj.DeviceNumber}).CustomerLoadModels.Get(1).LoadValueType")
-            #print(kw)
-            obj.SetValue(valueF, ppty)
-            #ppty = f'{ppty[0]}{obj.DeviceNumber}{ppty[1]}'
-            #obj.SetValue(valueF, ppty, obj.DeviceNumber, self.sim_instance.enums.Phase.ABC, "DEFAULT")
+            if isinstance(self.attrs["units"], np.ndarray):
+                unit = self.attrs["units"][0].decode()
+            else:
+                unit = self.attrs["units"].decode()
+
+
+            phases = self.sim_instance.study.QueryInfoDevice("LoadPhase", obj.DeviceNumber, obj.DeviceType)
+            phasesType = self.sim_instance.study.QueryInfoDevice("LoadPhaseType", obj.DeviceNumber, obj.DeviceType)
+            if phasesType == 'ByPhase':
+                phases = [Ph for Ph in phases]
+                loadMult = 1 / len(phases)
+            else:
+                phases = [phases]
+                loadMult = 1
+
+            if obj.DeviceType in self.isLoad:
+                ppty = FIELD_MAP[class_name][unit]
+                key = f"{ppty[0]}{obj.DeviceNumber}{ppty[1]}.LoadValueType"
+                loadtype = obj.GetValue(key).lower()
+
+                if unit not in loadtype.split("_"):
+                    self.logger.warning(
+                        f"{class_name}.{element_name} is of type {loadtype}. A {unit} profile has been attached.Value could not be updated.")
+                else:
+                    load = self.sim_instance.study.GetLoad(obj.DeviceNumber, self.sim_instance.enums.LoadType.Spot)
+                    for ph in phases:
+                        en = getattr(self.sim_instance.enums.Phase, ph)
+                        load.SetValue(valueF * loadMult, f"LoadValue.{unit.upper()}", obj.DeviceNumber, en, "DEFAULT")
+                        kw = load.GetValue(f"LoadValue.{unit.upper()}", obj.DeviceNumber, en, "DEFAULT")
+            else:
+               raise NotImplementedError("Please extend HDF5.py file to add functionality")
+
         return valueF
