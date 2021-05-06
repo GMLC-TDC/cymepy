@@ -54,7 +54,6 @@ class HELICS:
 
         subscriptionDict = toml.load(open(subpath, "r"))
         subscriptionDict = validate_settings(subscriptionDict, CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE)
-        print(subscriptionDict)
         self.Subscriptions = {}
         for elmCN, subInfoList in subscriptionDict.items():
             for subInfo in subInfoList:

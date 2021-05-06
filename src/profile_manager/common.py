@@ -6,6 +6,11 @@ DEFAULT_PROFILE_SETTINGS = {
         "interpolate": False
     }
 
+PROPERTY_MAP = {
+    "kw": "ActiveGeneration",
+    "pf": "PowerFactor",
+}
+
 
 FIELD_MAP = {
     "SpotLoad": {
@@ -16,14 +21,19 @@ FIELD_MAP = {
         "kva": [
             "CustomerLoads.Get(",
             ").CustomerLoadModels.Get(1)",
-            ".CustomerLoadValues.Get(ABC).LoadValue"
         ],
         "kvar": [
             "CustomerLoads.Get(",
             ").CustomerLoadModels.Get(1)"
         ],
-    }
+    },
+    "Photovoltaic": {
+            "ActiveGeneration": "GenerationModels.Get(1)",
+            "PowerFactor": "GenerationModels.Get(1)"
+    },
 }
+
+
 
 class PROFILE_SOURCE_TYPES(Enum):
     HDF5 = "HDF5"

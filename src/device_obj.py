@@ -9,17 +9,17 @@ class DEVICE:
 
     def save_state(self):
         self.states = {}
-
         for param in self.memory_valiables:
             self.states[param] = self.cymepy.study.QueryInfoDevice(param, self.device.DeviceNumber, self.device.DeviceType)
 
-        #print(self.states)
         return
 
     def restore_state(self):
         if hasattr(self, 'states'):
             for param, val in self.states.items():
-                self.device.SetValue(val, param)
+                print(self.device, param, val)
+                #self.device.SetValue(val, "TapA")
+
                 # self.cymepy.study.SetValueDevice(
                 #     val,
                 #     param,

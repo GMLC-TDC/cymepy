@@ -1,4 +1,5 @@
 from src.common import CORE_CYMEPY_PROJECT_FILES, DEVICES_WITH_MEMORY
+from src.export_manager.base_definations import ExportManager
 from src.validators import validate_settings
 from src.helics_interface import HELICS
 from src.solver import Solver
@@ -45,7 +46,6 @@ class cymeInstance:
                 conn_info.LoadProfile.Path = profiles_path
                 cympy.db.Connect(conn_info)
 
-        print(dir(cympy.enums.DeviceType()))
         self.__Logger.info(cympy.version + ' created sucessfully.')
         self.projectPath = os.path.join(
             SettingsDict["project"]['project_path'],
@@ -69,7 +69,7 @@ class cymeInstance:
             for elm_type in DEVICES_WITH_MEMORY:
                 self.devices[elm_type] = self.get_devices(elm_type, DEVICES_WITH_MEMORY[elm_type])
 
-        #print(self.devices)
+        self.export_manager = self.get_export_manager()
 
         if self.settings["helics"]["cosimulation_mode"]:
             self.HI = HELICS(SettingsDict, self.cympy, self.simObj, self.__Logger)
@@ -79,7 +79,7 @@ class cymeInstance:
     def get_devices(self, elm_type, var_list):
         enumerator = getattr(self.cympy.enums.DeviceType, elm_type)
         devices = self.cympy.study.ListDevices(enumerator)
-        #print(devices)
+
         device_dict = {}
         for device in devices:
             device_dict[device.DeviceNumber] = DEVICE(self.cympy, device, var_list)
@@ -100,6 +100,7 @@ class cymeInstance:
             incFlag = self.runStep(incFlag)
             if incFlag:
                 step += 1
+        self.export_manager.export()
         return
 
     def runStep(self, increment_flag):
@@ -118,7 +119,7 @@ class cymeInstance:
             self.simObj.increment()
 
         self.save_states()
-
+        self.export_manager.update()
         if self.settings['helics']['cosimulation_mode']:
             increment_flag, helics_time = self.HI.request_time_increment()
             self.HI.update_publications()
@@ -138,8 +139,20 @@ class cymeInstance:
                 device.restore_state()
         return
 
+    def get_export_manager(self):
+        if self.settings['Exports']['export_file_type'] == "csv":
+            from src.export_manager.hooks.csv_writer import Writer
+            export_manager = Writer(self.cympy, self.simObj, self.settings, self.__Logger)
+        elif self.settings['Exports']['export_file_type'] == "h5":
+            from src.export_manager.hooks.h5_writer import Writer
+            export_manager = Writer(self.cympy, self.simObj, self.settings, self.__Logger)
+        elif self.settings['Exports']['export_file_type'] == "json":
+            from src.export_manager.hooks.JSON_writer import Writer
+            export_manager = Writer(self.cympy, self.simObj, self.settings, self.__Logger)
+        return export_manager
+
 if __name__ == "__main__":
     import toml
-    Settings = toml.load(open(r"C:\Users\alatif\Desktop\CYMEPY\examples\LFwithProfiles\Settings.toml"))
+    Settings = toml.load(open(r"C:\Users\alatif\Desktop\Cymepy\examples\ieee13node\Settings.toml"))
     instance = cymeInstance(Settings)
     instance.runSimulation()

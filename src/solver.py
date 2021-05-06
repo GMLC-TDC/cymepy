@@ -22,7 +22,7 @@ class Solver:
             if self.Settings['profiles']["use_internal_profile_manager"]:
 
                 self.solverObj = cymepy.sim.LoadFlowWithProfiles()
-                self.solverObj.SetValue("TimeRangeMode", "Parameters.TimeParametersMode")
+                self.solverObj.SetValue("SingleTimeMode", "Parameters.TimeParametersMode")
                 self.loadflowSettings(cymepy.sim.LoadFlow())
 
             else:
@@ -47,16 +47,11 @@ class Solver:
         if self.Settings['project']["simulation_type"] == "QSTS":
             if self.Settings['profiles']["use_profiles"]:
                 if self.Settings['profiles']["use_internal_profile_manager"]:
-                    self.solverObj.SetValue(int(self._Time.timestamp()), "Parameters.TimeRangeStarting")
-                    newTime = self._Time + timedelta(minutes=self._mStepRes)
-                    self.solverObj.SetValue(int(newTime.timestamp()), "Parameters.TimeRangeEnding")
-                    self.solverObj.SetValue(int(self._mStepRes), "Parameters.TimeInterval")
-                    a = self.solverObj.Run()
-                    endTime = self.solverObj.GetValue('Parameters.TimeRangeEnding')
-                    endTime= datetime.fromtimestamp(int(endTime))
-                    self._Logger.debug(f"CYME internal time: {endTime}")
+                    self.solverObj.SetValue(int(self._Time.timestamp()), "Parameters.SingleTime")
+                    self.solverObj.Run()
+                    #self._Logger.debug(f"CYME internal time: {self._Time}")
                 else:
-                    a = self.solverObj.Run()
+                    self.solverObj.Run()
 
             self._Time = self._Time + timedelta(minutes=self._mStepRes)
             self._Logger.debug(f"CYMEPY time: {self._Time}")
