@@ -1,0 +1,51 @@
+[[Load.dabri_loads_6]]
+"object" = "SpotLoad.LOAD611" 
+"multiplier" = 170.0
+"normalize" = true
+"interpolate" = true
+
+[[Load.dabri_loads_6]]
+"object" = "SpotLoad.LOAD634"
+"multiplier" = 400.0
+"normalize" = true
+"interpolate" = true
+ 
+[[Load.dabri_loads_6]]
+"object" = "SpotLoad.LOAD645" 
+"multiplier" = 170.0
+"normalize" = true
+"interpolate" = true
+
+[[Load.dabri_loads_6]]
+"object" = "SpotLoad.LOAD646" 
+"multiplier" = 230.0
+"normalize" = true
+"interpolate" = true
+
+[[Load.dabri_loads_6]]
+"object" = "SpotLoad.LOAD652"
+"multiplier" = 128.0
+"normalize" = true
+"interpolate" = true
+ 
+[[Load.dabri_loads_6]]
+"object" = "SpotLoad.LOAD671" 
+"multiplier" = 1155.0
+"normalize" = true
+"interpolate" = true
+
+[[Load.dabri_loads_6]]
+"object" = "SpotLoad.LOAD675"
+"multiplier" = 843.0
+"normalize" = true
+"interpolate" = true
+ 
+[[Load.dabri_loads_6]]
+"object" = "SpotLoad.LOAD692" 
+"multiplier" = 170.0
+"normalize" = true
+"interpolate" = true
+
+
+
+
