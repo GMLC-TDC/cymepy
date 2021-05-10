@@ -31,7 +31,7 @@ class HELICS_CORE_TYPE(Enum):
 class Project_Settings(BaseModel):
     start_time: str
     end_time: str
-    time_step_min: conint(ge=1)
+    time_step_min: confloat(gt=0)
     max_iter: conint(ge=1, le=1000)
     error_tolerance: confloat(gt=0)
     simulation_type: SIMULATION_TYPE

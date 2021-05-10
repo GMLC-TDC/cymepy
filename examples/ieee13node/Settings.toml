@@ -1,6 +1,6 @@
 [project]
-start_time = "2017-1-1 00:00:00.0"
-end_time = "2017-1-2 00:00:00.0"
+start_time = "2020-7-14 00:00:00.0"
+end_time = "2020-7-15 00:00:00.0"
 time_step_min = 1
 max_iter = 50
 error_tolerance = 0.001
@@ -9,6 +9,10 @@ project_path = "C:\\Users\\alatif\\Desktop\\CYMEPY\\examples\\ieee13node"
 mdb_file = "Feeder1_2.mdb"
 sxst_file = "IEEE_13_node_test_feeder.sxst"
 cyme_installation_directory = "C:\\Program Files (x86)\\CYME\\CYME"
+
+[Exports]
+in_memory = true
+export_file_type = "csv" # "h5", "json", "csv"
 
 [helics]
 cosimulation_mode = false

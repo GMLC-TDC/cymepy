@@ -1,0 +1,42 @@
+[project]
+start_time = "2020-7-14 00:00:00.0"
+end_time = "2020-7-14 00:00:05.0"
+time_step_min = 0.00006944444
+max_iter = 50
+error_tolerance = 0.001
+simulation_type = "QSTS"
+project_path = "C:\\Users\\alatif\\Desktop\\CYMEPY\\examples\\ieee13node"
+mdb_file = "Feeder1_2.mdb"
+sxst_file = "IEEE_13_node_test_feeder.sxst"
+cyme_installation_directory = "C:\\Program Files (x86)\\CYME\\CYME"
+
+[Exports]
+in_memory = true
+export_file_type = "csv" # "h5", "json", "csv"
+
+[helics]
+cosimulation_mode = true
+coiter_mode = false
+coiter_error_tolerance = 0.1
+max_coiter = 20
+broker = "127.0.0.1"
+broker_port = 23404
+federate_name = "CYME"
+time_delta = 0.01
+core_type = "ZMQ"
+uninterruptible = true
+helics_logging_level = 5
+
+[logger]
+logging_level = "DEBUG"
+log_to_external_file = true
+display_on_screen = true
+clear_old_log_file = true
+pre_configured_logging = false
+
+[profiles]
+use_profiles = true
+use_internal_profile_manager = false
+source_type = "h5"
+source = "Profiles.hdf5"
+is_relavtive_path = true

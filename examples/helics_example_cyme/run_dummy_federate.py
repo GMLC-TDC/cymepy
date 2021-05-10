@@ -60,7 +60,7 @@ h.helicsFederateEnterExecutingMode(vfed)
 
 basevolt = 4.16
 
-for t in range(1, 30):
+for t in range(1, 1440):
     time_requested = t * 60
     #while time_requested < r_seconds:
     currenttime = h.helicsFederateRequestTime(vfed, time_requested)

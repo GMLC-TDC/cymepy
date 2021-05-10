@@ -85,7 +85,9 @@ class HELICS:
                             ))
 
                         subname = subInfo["subscription"]
-                        self.Subscriptions[subname] = {
+                        if subname not in self.Subscriptions:
+                            self.Subscriptions[subname] = []
+                        self.Subscriptions[subname].append({
                             "elementObj": fDevice,
                             "subscriptionObj": h.helicsFederateRegisterSubscription(
                                 self.cymeFederate,
@@ -99,7 +101,7 @@ class HELICS:
                             "dType": pType,
                             "dStates": [self.init_state] * self.n_states,
                             "mult" : subInfo["multiplier"]
-                        }
+                        })
                         self.__Logger.debug(
                             f"Object {cName}.{eName}'s {subInfo['property']} property has subscribed to {subInfo['subscription']}.")
 
@@ -125,7 +127,7 @@ class HELICS:
         h.helicsFederateInfoSetIntegerProperty(self.fedinfo, h.helics_property_int_log_level,
                                                     self.settings['helics']['helics_logging_level'])
 
-        h.helicsFederateInfoSetFlagOption(self.fedinfo, h.helics_flag_uninterruptible, True)
+        #h.helicsFederateInfoSetFlagOption(self.fedinfo, h.helics_flag_uninterruptible, True)
         h.helicsFederateInfoSetIntegerProperty(self.fedinfo, h.helics_property_int_max_iterations,
                                                     self.settings["helics"]["max_coiter"])
         self.cymeFederate = h.helicsCreateValueFederate(self.settings['helics']['federate_name'], self.fedinfo)
@@ -232,44 +234,39 @@ class HELICS:
         return
 
     def update_subscriptions(self):
-        for subName, subInfo in self.Subscriptions.items():
-            sub = subInfo["subscriptionObj"]
-            if subInfo["dType"].lower() == "complex":
-                value = h.helicsInputGetComplex(sub)
-            elif subInfo["dType"].lower() == 'real':
-                value = h.helicsInputGetDouble(sub)
-            elif subInfo["dType"].lower() == 'text':
-                value = h.helicsInputGetString(sub)
-            elif subInfo["dType"].lower() == "number":
-                value = h.helicsInputGetInteger(sub)
-            else:
-                value = h.helicsInputGetDouble(sub)
+        for subName, subList in self.Subscriptions.items():
+            for subInfo in subList:
+                sub = subInfo["subscriptionObj"]
+                if subInfo["dType"].lower() == "complex":
+                    value = h.helicsInputGetComplex(sub)
+                elif subInfo["dType"].lower() == 'real':
+                    value = h.helicsInputGetDouble(sub)
+                elif subInfo["dType"].lower() == 'text':
+                    value = h.helicsInputGetString(sub)
+                elif subInfo["dType"].lower() == "number":
+                    value = h.helicsInputGetInteger(sub)
+                else:
+                    value = h.helicsInputGetDouble(sub)
 
-            if value:
-                value = value * subInfo["mult"]
-                X1 = subInfo["elementObj"].GetValue(subInfo["property"])
-                subInfo["elementObj"].SetValue(value, subInfo["property"])
-                # self.cympy.study.SetValueDevice(
-                #     value,
-                #     subInfo["property"],
-                #     subInfo["elementObj"].DeviceNumber,
-                #     subInfo["elementObj"].DeviceType
-                # )
-                #
-                X2 = subInfo["elementObj"].GetValue(subInfo["property"])
-                print(X1, value, X2)
-                self.__Logger.debug(f"{subInfo['class']}.{subInfo['name']}.{subInfo['property']} updated to {value}")
-                if self.settings['helics']['coiter_mode']:
-                    if self.c_seconds != self.c_seconds_old:
-                        subInfo["dStates"] = [self.init_state] * self.n_states
-                    else:
-                        subInfo["dStates"].insert(0, subInfo["dStates"].pop())
-                    subInfo["dStates"][0] = value
-        #self.cympy.study.Save()
+                if value:
+                    value = value * subInfo["mult"]
+                    X1 = subInfo["elementObj"].GetValue(subInfo["property"])
+
+                    if value < 10000.0 and value > -100000.0:
+                        subInfo["elementObj"].SetValue(value, subInfo["property"])
+                        #X2 = subInfo["elementObj"].GetValue(subInfo["property"])
+                        self.__Logger.debug(f"{subInfo['class']}.{subInfo['name']}.{subInfo['property']} updated to {value}")
+                    if self.settings['helics']['coiter_mode']:
+                        if self.c_seconds != self.c_seconds_old:
+                            subInfo["dStates"] = [self.init_state] * self.n_states
+                        else:
+                            subInfo["dStates"].insert(0, subInfo["dStates"].pop())
+                        subInfo["dStates"][0] = value
+            #self.cympy.study.Save()
         return
 
     def request_time_increment(self):
-        error = sum([abs(x["dStates"][0] - x["dStates"][1]) for k, x in self.Subscriptions.items()])
+        error = sum([abs(y["dStates"][0] - y["dStates"][1]) for k, x in self.Subscriptions.items() for y in x])
         r_seconds = self.Solver.GetTotalSeconds()
         if not self.settings['helics']['coiter_mode']:
             while self.c_seconds < r_seconds:

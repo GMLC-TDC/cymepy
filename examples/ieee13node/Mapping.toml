@@ -1,28 +1,28 @@
-[[Load.dabri_loads_6]]
+[[Load.dabri_loads_1]]
 "object" = "SpotLoad.LOAD611" 
 "multiplier" = 170.0
 "normalize" = true
 "interpolate" = true
 
-[[Load.dabri_loads_6]]
+[[Load.dabri_loads_2]]
 "object" = "SpotLoad.LOAD634"
 "multiplier" = 400.0
 "normalize" = true
 "interpolate" = true
  
-[[Load.dabri_loads_6]]
+[[Load.dabri_loads_3]]
 "object" = "SpotLoad.LOAD645" 
 "multiplier" = 170.0
 "normalize" = true
 "interpolate" = true
 
-[[Load.dabri_loads_6]]
+[[Load.dabri_loads_4]]
 "object" = "SpotLoad.LOAD646" 
 "multiplier" = 230.0
 "normalize" = true
 "interpolate" = true
 
-[[Load.dabri_loads_6]]
+[[Load.dabri_loads_5]]
 "object" = "SpotLoad.LOAD652"
 "multiplier" = 128.0
 "normalize" = true
@@ -34,13 +34,13 @@
 "normalize" = true
 "interpolate" = true
 
-[[Load.dabri_loads_6]]
+[[Load.dabri_loads_1]]
 "object" = "SpotLoad.LOAD675"
 "multiplier" = 843.0
 "normalize" = true
 "interpolate" = true
  
-[[Load.dabri_loads_6]]
+[[Load.dabri_loads_2]]
 "object" = "SpotLoad.LOAD692" 
 "multiplier" = 170.0
 "normalize" = true

@@ -10,6 +10,7 @@ import os
 
 class ProfileManager(BaseProfileManager):
     def __init__(self, sim_instance, solver, options, logger, **kwargs):
+
         super(ProfileManager, self).__init__(sim_instance, solver, options, logger, **kwargs)
         if os.path.exists(self.basepath):
             self.logger.info("Loading existing h5 store")
@@ -40,6 +41,9 @@ class ProfileManager(BaseProfileManager):
                                 self.logger,
                                 **self.kwargs
                             )
+                            self.logger.debug("Profile {}\{} attached to devices {}".format(
+                                group, profileName, ", ".join(list(devices.keys()))
+                            ))
                     else:
                         self.logger.warning("Group {} \ data set {} not found in the h5 store".format(
                             group, profileName
@@ -82,9 +86,6 @@ class ProfileManager(BaseProfileManager):
         pass
 
 class Profile(BaseProfile):
-
-
-
     def __init__(self, sim_instance, dataset, devices, solver, mapping_dict, logger, **kwargs):
         super(Profile, self).__init__(sim_instance, dataset, devices, solver, mapping_dict, logger, **kwargs)
         self.valueSettings = {x['object']: {**DEFAULT_PROFILE_SETTINGS, **x} for x in mapping_dict}

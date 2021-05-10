@@ -1,0 +1,15 @@
+[["Transformer"]]
+"regex_filter" = ""
+"properties" = ["IA", "IB", "IC"]
+
+[["DistributedLoad"]]
+"regex_filter" = ""
+"properties" = ["KWA", "KVARA", "KWB", "KVARB", "KWC", "KVARC"]
+
+[["SpotLoad"]]
+"regex_filter" = ""
+"properties" = ["KWA", "KVARA", "KWB", "KVARB", "KWC", "KVARC"]
+
+[["Source"]]
+"regex_filter" = ""
+"properties" = ["KWTOT", "KVARTOT", "OperatingVoltageA", "OperatingVoltageB", "OperatingVoltageC"]

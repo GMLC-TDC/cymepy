@@ -65,8 +65,9 @@ class Solver:
         self._Logger.debug(f"Resolving at time: {self._Time}")
 
     def SimulationSteps(self):
-        Minutes = int((self._EndTime - self._StartTime).total_seconds() / 60.0)
+        Minutes = (self._EndTime - self._StartTime).total_seconds() / 60.0
         Steps = math.ceil(Minutes / self._mStepRes)
+
         return Steps, self._StartTime, self._EndTime
 
     def GetTotalSeconds(self):

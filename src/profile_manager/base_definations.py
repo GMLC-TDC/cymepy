@@ -116,5 +116,5 @@ class BaseProfile(abc.ABC):
                 for pha in Phases:
                     ppty = f"OperatingVoltage{pha}"
                     obj.SetValue(V, ppty)
-                    logger.debug(f"Property {ppty} updated to {V} for {obj.DeviceType}.{obj.DeviceNumber} ")
+                    logger.info(f"Property {ppty} updated to {V} for {obj.DeviceType}.{obj.DeviceNumber} ")
         return valueF

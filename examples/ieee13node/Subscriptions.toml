@@ -1,14 +1,14 @@
 [["Source.SUB650WYE-S2"]]
 property = "OperatingVoltageA"
-subscription = "test.feederhead.voltageA"
-multiplier = 1 
+subscription = "psse.Buses.17605.PU"
+multiplier = 2.4 
 
 [["Source.SUB650WYE-S2"]]
 property = "OperatingVoltageB"
-subscription = "test.feederhead.voltageB"
-multiplier = 1 
+subscription = "psse.Buses.17605.PU"
+multiplier = 2.4 
 
 [["Source.SUB650WYE-S2"]]
 property = "OperatingVoltageC"
-subscription = "test.feederhead.voltageC"
-multiplier = 1 
+subscription = "psse.Buses.17605.PU"
+multiplier = 2.4 

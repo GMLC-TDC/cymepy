@@ -12,6 +12,7 @@ from src.profile_manager.hooks.HDF5 import ProfileManager
 class cymeInstance:
     def __init__(self, SettingsDict, N=None):
         self.SystemStates = []
+        self.step = 0
         self.settings = validate_settings(SettingsDict, CORE_CYMEPY_PROJECT_FILES.SIMULATION_FILE)
         LoggerTag = 'CymeInstance' if N == None else 'CymeInstance_' + str(N)
         self.__Logger = Logger.getLogger(
@@ -97,14 +98,19 @@ class cymeInstance:
         step = 0
         incFlag = False
         while step < Steps:
+            if self.step != step and step != 0:
+                self.restore_states()
             incFlag = self.runStep(incFlag)
             if incFlag:
+                self.export_manager.update()
+                self.save_states()
                 step += 1
+            self.step = step
         self.export_manager.export()
         return
 
     def runStep(self, increment_flag):
-        self.restore_states()
+
         self.profile_manager.update()
         if self.settings['helics']['cosimulation_mode']:
             self.HI.update_subscriptions()
@@ -117,9 +123,6 @@ class cymeInstance:
                 self.simObj.resolve()
         else:
             self.simObj.increment()
-
-        self.save_states()
-        self.export_manager.update()
         if self.settings['helics']['cosimulation_mode']:
             increment_flag, helics_time = self.HI.request_time_increment()
             self.HI.update_publications()
