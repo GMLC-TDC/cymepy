@@ -5,3 +5,4 @@ click
 pydantic
 toml
 h5py
+pyodbc
