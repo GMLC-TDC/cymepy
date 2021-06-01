@@ -57,7 +57,10 @@ class Writer(ExportManager):
             for cName, eInfo in cInfo.items():
                 for eName, pptyInfo in eInfo.items():
                     for ppty, value in pptyInfo.items():
-                        self.store_groups[cName][eName][ppty][self.i] = float(value)
+                        try:
+                            self.store_groups[cName][eName][ppty][self.i] = float(value)
+                        except:
+                            self.store_groups[cName][eName][ppty][self.i] = np.NaN
         self.i += 1
         return
 

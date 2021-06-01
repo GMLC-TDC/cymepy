@@ -11,6 +11,15 @@ PROPERTY_MAP = {
     "pf": "PowerFactor",
 }
 
+UNITS_MAP = {
+    5: "kva",
+    4: "pf",
+}
+
+
+CLASS_MAP = {
+    14 : "SpotLoad",
+}
 
 FIELD_MAP = {
     "SpotLoad": {
@@ -26,6 +35,10 @@ FIELD_MAP = {
             "CustomerLoads.Get(",
             ").CustomerLoadModels.Get(1)"
         ],
+        "pf": [
+            "CustomerLoads.Get(",
+            ").CustomerLoadModels.Get(1)"
+        ],
     },
     "Photovoltaic": {
             "ActiveGeneration": "GenerationModels.Get(1)",
@@ -38,6 +51,7 @@ FIELD_MAP = {
 class PROFILE_SOURCE_TYPES(Enum):
     HDF5 = "HDF5"
     CSV = "CSV"
+    MDB = "mdb"
 
 
 class PROFILE_TYPES(IntEnum):

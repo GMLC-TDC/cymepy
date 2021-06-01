@@ -1,13 +1,10 @@
 from src.common import CORE_CYMEPY_PROJECT_FILES, DEVICES_WITH_MEMORY
-from src.export_manager.base_definations import ExportManager
 from src.validators import validate_settings
 from src.helics_interface import HELICS
 from src.solver import Solver
 from src.device_obj import DEVICE
 import src.logger as Logger
 import os
-
-from src.profile_manager.hooks.HDF5 import ProfileManager
 
 class cymeInstance:
     def __init__(self, SettingsDict, N=None):
@@ -64,7 +61,14 @@ class cymeInstance:
             raise Exception(f"Project path: {self.projectPath} does not exist")
 
         self.simObj = Solver(cympy, SettingsDict, self.__Logger)
-        self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
+
+        if self.settings["profiles"]["source_type"] == "h5":
+            from src.profile_manager.hooks.HDF5 import ProfileManager
+            self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
+        elif self.settings["profiles"]["source_type"] == "mdb":
+            from src.profile_manager.hooks.ACCESS import ProfileManager
+            self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
+
         self.devices = {}
         if self.settings['project']["simulation_type"] == "QSTS":
             for elm_type in DEVICES_WITH_MEMORY:
@@ -156,6 +160,6 @@ class cymeInstance:
 
 if __name__ == "__main__":
     import toml
-    Settings = toml.load(open(r"C:\Users\alatif\Desktop\Cymepy\examples\ieee13node\Settings.toml"))
+    Settings = toml.load(open(r"C:\Users\alatif\Desktop\Cymepy\examples\LFwithProfiles\Settings.toml"))
     instance = cymeInstance(Settings)
     instance.runSimulation()

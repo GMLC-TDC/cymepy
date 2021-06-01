@@ -83,7 +83,7 @@ class ProfileManager(BaseProfileManager):
         for profileaName, profileObj in self.Profiles.items():
             result = profileObj.update()
             results[profileaName] = result
-        pass
+        return results
 
 class Profile(BaseProfile):
     def __init__(self, sim_instance, dataset, devices, solver, mapping_dict, logger, **kwargs):
@@ -91,14 +91,6 @@ class Profile(BaseProfile):
         self.valueSettings = {x['object']: {**DEFAULT_PROFILE_SETTINGS, **x} for x in mapping_dict}
         self.attrs = self.dataset.attrs
         self.update_profile_settings()
-
-        self.isLoad = [
-            self.sim_instance.enums.DeviceType.DCLoad,
-            self.sim_instance.enums.DeviceType.SpotLoad,
-            self.sim_instance.enums.DeviceType.DistributedLoad,
-        ]
-
-        self.isPV = self.sim_instance.enums.DeviceType.Photovoltaic
 
 
         pass

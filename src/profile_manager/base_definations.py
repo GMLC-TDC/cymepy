@@ -48,6 +48,15 @@ class BaseProfile(abc.ABC):
         self.devices = devices
         self.logger = logger
         self.solver = solver
+        self.kwargs = kwargs
+
+        self.isLoad = [
+            self.sim_instance.enums.DeviceType.DCLoad,
+            self.sim_instance.enums.DeviceType.SpotLoad,
+            self.sim_instance.enums.DeviceType.DistributedLoad,
+        ]
+
+        self.isPV = self.sim_instance.enums.DeviceType.Photovoltaic
 
         pass
 
@@ -77,7 +86,11 @@ class BaseProfile(abc.ABC):
             phases = self.sim_instance.study.QueryInfoDevice("LoadPhase", obj.DeviceNumber, obj.DeviceType)
             phasesType = self.sim_instance.study.QueryInfoDevice("LoadPhaseType", obj.DeviceNumber, obj.DeviceType)
             if phasesType == 'ByPhase':
-                phases = [Ph for Ph in phases]
+                if phases:
+                    phases = [Ph for Ph in phases]
+                else:
+                    phases = ["A", "B", "C"]
+                    self.logger.warning(f"No phase info returned for element: {class_name}.{element_name}. Defaulting to ABC configuration")
                 loadMult = 1 / len(phases)
             else:
                 phases = [phases]
@@ -90,7 +103,7 @@ class BaseProfile(abc.ABC):
 
                 if unit not in loadtype.split("_"):
                     self.logger.warning(
-                        f"{class_name}.{element_name} is of type {loadtype}. A {unit} profile has been attached.Value could not be updated.")
+                        f"{class_name}.{element_name} is of type {loadtype}. A {unit} profile has been attached. Value could not be updated.")
                 else:
                     load = self.sim_instance.study.GetLoad(obj.DeviceNumber, self.sim_instance.enums.LoadType.Spot)
                     for ph in phases:
