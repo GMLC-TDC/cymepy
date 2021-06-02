@@ -37,7 +37,7 @@ def find_version(*file_paths):
                               version_file, re.M)
     if version_match:
         ver =  version_match.group(1)
-        return ".".join(ver.split(".")[:-1])
+        return ".".join(ver.split("."))#[:-1])
     raise RuntimeError("Unable to find version string.")
 
 print(find_version("cymepy", "__init__.py"),)
