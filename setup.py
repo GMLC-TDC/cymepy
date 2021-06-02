@@ -45,7 +45,7 @@ setup(
     description='Helice interface for CYME',
     author='Aadil Latif',
     author_email='Aadil.Latif@nrel.gov',
-    #url='',
+    url='https://github.com/GMLC-TDC/cymepy',
     packages=find_packages(),
     install_requires=all_lines,
     dependency_links=dependencies,
