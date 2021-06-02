@@ -1,3 +1,4 @@
 ﻿include LICENSE
 include README.md
-recursive-include cymepy *.toml
+include requirements.txt
+recursive-include cymepy/defaults *
