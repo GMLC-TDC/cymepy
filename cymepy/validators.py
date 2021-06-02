@@ -1,7 +1,7 @@
-from src.common import DATE_FORMAT, CORE_CYMEPY_PROJECT_FILES, CYMEPY_FOLDER_STRUCTURE
+from cymepy.common import DATE_FORMAT, CORE_CYMEPY_PROJECT_FILES, CYMEPY_FOLDER_STRUCTURE
 from pydantic import BaseModel, validator, conint, confloat
-from src.profile_manager.common import PROFILE_SOURCE_TYPES
-from src.utils.utils import readToml
+from cymepy.profile_manager.common import PROFILE_SOURCE_TYPES
+from cymepy.utils.utils import readToml
 from datetime import datetime
 from typing import List, Dict
 from enum import Enum

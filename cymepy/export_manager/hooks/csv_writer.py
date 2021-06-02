@@ -1,4 +1,4 @@
-from src.export_manager.base_definations import ExportManager
+from cymepy.export_manager.base_definations import ExportManager
 import os
 
 class Writer(ExportManager):

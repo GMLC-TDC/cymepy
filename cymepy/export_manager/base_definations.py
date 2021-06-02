@@ -1,12 +1,8 @@
-from src.profile_manager.common import FIELD_MAP, PROPERTY_MAP
-from src.common import CORE_CYMEPY_PROJECT_FILES
-import numpy as np
+from cymepy.common import CORE_CYMEPY_PROJECT_FILES
 import toml
 import abc
 import os
 import re
-
-
 
 import logging
 logger = logging.getLogger(__name__)

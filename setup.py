@@ -41,7 +41,7 @@ def find_version(*file_paths):
 
 setup(
     name='CYMEPY',
-    version=find_version("src", "__init__.py"),
+    version=find_version("cymepy", "__init__.py"),
     description='Helice interface for CYME',
     author='Aadil Latif',
     author_email='Aadil.Latif@nrel.gov',
@@ -52,7 +52,7 @@ setup(
     package_data={'cymepy': ['*.toml']},
     entry_points={
         "console_scripts": [
-            "cymepy=src.cli.cymepy:cli",
+            "cymepy=cymepy.cli.cymepy:cli",
         ],
     },
     license='BSD 3 clause',

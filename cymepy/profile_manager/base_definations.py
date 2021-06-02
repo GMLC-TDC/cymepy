@@ -1,5 +1,5 @@
-from src.profile_manager.common import FIELD_MAP, PROPERTY_MAP
-from src.common import CORE_CYMEPY_PROJECT_FILES
+from cymepy.profile_manager.common import FIELD_MAP, PROPERTY_MAP
+from cymepy.common import CORE_CYMEPY_PROJECT_FILES
 import numpy as np
 import toml
 import abc

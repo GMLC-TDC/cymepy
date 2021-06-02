@@ -1,9 +1,9 @@
-from src.common import CORE_CYMEPY_PROJECT_FILES, DEVICES_WITH_MEMORY
-from src.validators import validate_settings
-from src.helics_interface import HELICS
-from src.solver import Solver
-from src.device_obj import DEVICE
-import src.logger as Logger
+from cymepy.common import CORE_CYMEPY_PROJECT_FILES, DEVICES_WITH_MEMORY
+from cymepy.validators import validate_settings
+from cymepy.helics_interface import HELICS
+from cymepy.solver import Solver
+from cymepy.device_obj import DEVICE
+import cymepy.logger as Logger
 import os
 
 class cymeInstance:
@@ -63,10 +63,10 @@ class cymeInstance:
         self.simObj = Solver(cympy, SettingsDict, self.__Logger)
 
         if self.settings["profiles"]["source_type"] == "h5":
-            from src.profile_manager.hooks.HDF5 import ProfileManager
+            from cymepy.profile_manager.hooks.HDF5 import ProfileManager
             self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
         elif self.settings["profiles"]["source_type"] == "mdb":
-            from src.profile_manager.hooks.ACCESS import ProfileManager
+            from cymepy.profile_manager.hooks.ACCESS import ProfileManager
             self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
 
         self.devices = {}
@@ -148,13 +148,13 @@ class cymeInstance:
 
     def get_export_manager(self):
         if self.settings['Exports']['export_file_type'] == "csv":
-            from src.export_manager.hooks.csv_writer import Writer
+            from cymepy.export_manager.hooks.csv_writer import Writer
             export_manager = Writer(self.cympy, self.simObj, self.settings, self.__Logger)
         elif self.settings['Exports']['export_file_type'] == "h5":
-            from src.export_manager.hooks.h5_writer import Writer
+            from cymepy.export_manager.hooks.h5_writer import Writer
             export_manager = Writer(self.cympy, self.simObj, self.settings, self.__Logger)
         elif self.settings['Exports']['export_file_type'] == "json":
-            from src.export_manager.hooks.JSON_writer import Writer
+            from cymepy.export_manager.hooks.JSON_writer import Writer
             export_manager = Writer(self.cympy, self.simObj, self.settings, self.__Logger)
         return export_manager
 

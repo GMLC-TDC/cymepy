@@ -1,11 +1,9 @@
-from src.profile_manager.common import PROFILE_TYPES, DEFAULT_PROFILE_SETTINGS, UNITS_MAP, CLASS_MAP
-from src.profile_manager.base_definations import BaseProfileManager, BaseProfile
-from src.common import DATE_FORMAT
+from cymepy.profile_manager.common import DEFAULT_PROFILE_SETTINGS, UNITS_MAP, CLASS_MAP
+from cymepy.profile_manager.base_definations import BaseProfileManager, BaseProfile
 import pandas as pd
-import datetime
 import pyodbc
 import copy
-import os
+
 class ProfileManager(BaseProfileManager):
 
     time_mapping = {

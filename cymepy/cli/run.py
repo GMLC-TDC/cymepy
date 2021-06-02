@@ -2,9 +2,9 @@
 CLI to run a PyDSS project
 """
 
-from src.common import CORE_CYMEPY_PROJECT_FILES
-from src.utils.utils import readToml
-from src.cymepy import cymeInstance
+from cymepy.common import CORE_CYMEPY_PROJECT_FILES
+from cymepy.utils.utils import readToml
+from cymepy.cymepy import cymeInstance
 import logging
 import click
 

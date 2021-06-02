@@ -1,5 +1,5 @@
-from src.export_manager.base_definations import ExportManager
-from src.common import EXPORT_FILENAME
+from cymepy.export_manager.base_definations import ExportManager
+from cymepy.common import EXPORT_FILENAME
 import json
 import os
 

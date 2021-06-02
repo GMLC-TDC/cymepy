@@ -1,12 +1,10 @@
-from src.profile_manager.common import PROFILE_TYPES, DEFAULT_PROFILE_SETTINGS, FIELD_MAP
-from src.profile_manager.base_definations import BaseProfileManager, BaseProfile
-from src.common import DATE_FORMAT
+from cymepy.profile_manager.common import PROFILE_TYPES, DEFAULT_PROFILE_SETTINGS
+from cymepy.profile_manager.base_definations import BaseProfileManager, BaseProfile
+from cymepy.common import DATE_FORMAT
 import datetime
 import h5py
 import copy
 import os
-
-
 
 class ProfileManager(BaseProfileManager):
     def __init__(self, sim_instance, solver, options, logger, **kwargs):

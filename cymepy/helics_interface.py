@@ -1,5 +1,5 @@
-from src.common import CORE_CYMEPY_PROJECT_FILES
-from src.validators import validate_settings
+from cymepy.common import CORE_CYMEPY_PROJECT_FILES
+from cymepy.validators import validate_settings
 import helics as h
 import toml
 import os

@@ -3,7 +3,7 @@
 import logging
 import click
 
-from src.cli.run import run
+from cymepy.cli.run import run
 
 
 logger = logging.getLogger(__name__)
