@@ -43,7 +43,7 @@ def find_version(*file_paths):
 print(find_version("cymepy", "__init__.py"),)
 
 setup(
-    name='CYMEPY',
+    name='cymepy',
     version=find_version("cymepy", "__init__.py"),
     description='Helice interface for CYME',
     author='Aadil Latif',
