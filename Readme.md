@@ -1,12 +1,16 @@
 ﻿## Welcome to the CYMEPY Repository
 
-> A HELICS interface for CYMRDIST (python API for CYME's distribution system simulator) and much mmore
+> A HELICS interface for CYMEDIST (python API for CYME's distribution system simulator) and much more
 
 ### Contact Information
 * :snowman: [Aadil Latif](mailto:aadil.latif@nrel.gov)
 
 ### Setup 
 
+#### Normal users
+1. pip install cymepy
+
+#### Developers 
 1. Clone this repository
 2. Open up a Anaconda command prompt and execute command `conda create -n <name> python=3.7`.
 3. Activate environment by executing `conda activate <name>`
