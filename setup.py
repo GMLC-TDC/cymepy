@@ -51,6 +51,7 @@ setup(
     url='https://github.com/GMLC-TDC/cymepy',
     packages=find_packages(),
     install_requires=requirements,
+    include_package_data=True,
     #dependency_links=dependencies,
     package_data={'cymepy': ['*.toml']},
         entry_points={
