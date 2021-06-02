@@ -7,6 +7,10 @@
 
 ### Setup 
 
+#### Normal users
+1. pip install cymepy
+
+#### Developers 
 1. Clone this repository
 2. Open up a Anaconda command prompt and execute command `conda create -n <name> python=3.7`.
 3. Activate environment by executing `conda activate <name>`
