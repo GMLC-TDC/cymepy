@@ -15,12 +15,12 @@ requirements = [x for x in all_lines if "git+" not in x]
 dependencies = [x for x in all_lines if "git+" in x]
 
 
-print("Precise installation requirements:")
+print("cymepy installation requirements:")
 for i, req in enumerate(requirements):
     print(f"{i}. {req}")
 
-print("Precise installation dependencies:")
-for i, req in enumerate(requirements):
+print("cymepy installation dependencies:")
+for i, req in enumerate(dependencies):
     print(f"{i}. {req}")
 
 # Read the version from the __init__.py file without importing it
@@ -36,8 +36,11 @@ def find_version(*file_paths):
     version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
                               version_file, re.M)
     if version_match:
-        return version_match.group(1)
+        ver =  version_match.group(1)
+        return ".".join(ver.split(".")[:-1])
     raise RuntimeError("Unable to find version string.")
+
+print(find_version("cymepy", "__init__.py"),)
 
 setup(
     name='CYMEPY',
@@ -47,14 +50,14 @@ setup(
     author_email='Aadil.Latif@nrel.gov',
     url='https://github.com/GMLC-TDC/cymepy',
     packages=find_packages(),
-    install_requires=all_lines,
-    dependency_links=dependencies,
+    install_requires=requirements,
+    #dependency_links=dependencies,
     package_data={'cymepy': ['*.toml']},
-    entry_points={
-        "console_scripts": [
-            "cymepy=cymepy.cli.cymepy:cli",
-        ],
-    },
+        entry_points={
+            "console_scripts": [
+                "cymepy=cymepy.cli.cymepy:cli",
+            ],
+        },
     license='BSD 3 clause',
     python_requires='>=3.6',
     classifiers=[
