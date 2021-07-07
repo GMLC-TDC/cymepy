@@ -36,18 +36,73 @@
   <section id="project-settings">
 <h1>Project settings<a class="headerlink" href="#project-settings" title="Permalink to this headline">¶</a></h1>
 <p>Project settings in the “Simulation.toml” file are used to basic settings for a simulation. It is to be noted that if you choose to use the profile manager, make sure the simulation start and end time lie within the time the profiles span. For simulations time points outside the time range of an attahcde profile, the profile value will default to zero.</p>
-<ul class="simple">
-<li><p><strong>start_time</strong> - (str) defines the start time for the simulation. It uses the following format “YYYY-MM-DD HH:MM:SS.f” e.g “2016-1-2 00:00:00.0”</p></li>
-<li><p><strong>end_time</strong> - (str) defines the end time for the simulation. same format as ‘start_time’.</p></li>
-<li><p><strong>time_step_min</strong> - (float) defines simulation time step in minutes.</p></li>
-<li><p><strong>max_iter</strong> - (int) defines iteration limit for the CYME solver.</p></li>
-<li><p><strong>error_tolerance</strong> - (float) defines error tolerance for the CYME solver.</p></li>
-<li><p><strong>simulation_type</strong> - (str) defines simulation mode for CYME. Possible values “QSTS” for time-series simulation “Static” for load flow</p></li>
-<li><p><strong>cyme_installation_directory</strong> - (str) path to CYME installation directory</p></li>
-<li><p><strong>project_path</strong> - (str) path to a valis CYMEpy project.</p></li>
-<li><p><strong>sxst_file</strong> - (str) name of teh project file.</p></li>
-<li><p><strong>mdb_file</strong> - (str) [OPTIONAL] file name of the profile mdb file. Only needed when using the internal profile manager.</p></li>
-</ul>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 48%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>start_time</p></td>
+<td><p>str</p></td>
+<td><p>“2016-1-1 00:00:00.0”</p></td>
+<td><p>Defines the start time for the simulation. It uses the following format “YYYY-MM-DD HH:MM:SS.f”</p></td>
+</tr>
+<tr class="row-odd"><td><p>end_time</p></td>
+<td><p>str</p></td>
+<td><p>“2016-1-2 00:00:00.0”</p></td>
+<td><p>Defines the end time for the simulation. same format as ‘start_time’</p></td>
+</tr>
+<tr class="row-even"><td><p>time_step_min</p></td>
+<td><p>float</p></td>
+<td><p>15.0</p></td>
+<td><p>Defines simulation time step in minutes.</p></td>
+</tr>
+<tr class="row-odd"><td><p>max_iter</p></td>
+<td><p>int</p></td>
+<td><p>20</p></td>
+<td><p>Defines iteration limit for the CYME solver.</p></td>
+</tr>
+<tr class="row-even"><td><p>error_tolerance</p></td>
+<td><p>float</p></td>
+<td><p>0.001</p></td>
+<td><p>Defines error tolerance for the CYME solver.</p></td>
+</tr>
+<tr class="row-odd"><td><p>simulation_type</p></td>
+<td><p>str</p></td>
+<td><p>“QSTS”</p></td>
+<td><p>Defines simulation mode for CYME. Possible values “QSTS” for time-series simulation “Static” for load flow.</p></td>
+</tr>
+<tr class="row-even"><td><p>cyme_installation_directory</p></td>
+<td><p>str</p></td>
+<td><p>“C:/Program Files (x86)/CYME/CYME”</p></td>
+<td><p>Set federate name. Should be unique if multiple CYMEpy instances are participating in the cosimulation</p></td>
+</tr>
+<tr class="row-odd"><td><p>project_path</p></td>
+<td><p>str</p></td>
+<td><p>“”</p></td>
+<td><p>Path to a valid CYMEpy project.</p></td>
+</tr>
+<tr class="row-even"><td><p>sxst_file</p></td>
+<td><p>str</p></td>
+<td><p>“”</p></td>
+<td><p>Name of the project file.</p></td>
+</tr>
+<tr class="row-odd"><td><p>mdb_file</p></td>
+<td><p>str</p></td>
+<td><p>“”</p></td>
+<td><p>[OPTIONAL] File name of the profile mdb file. Only needed when using the internal profile manager.</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 
 
@@ -71,6 +126,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Project settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Managing%20profiles.html">Profile management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Exporting%20reults.html">Exporting results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="The%20HELICS%20interface.html">The HELICS interface</a></li>
 </ul>
 
 <div class="relations">
