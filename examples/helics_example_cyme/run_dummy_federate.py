@@ -4,7 +4,7 @@ from math import pi
 import random
 import time
 import random
-initstring = "-f 2 --name=mainbroker --port=50001"
+initstring = "-f 2 --name=mainbroker --port=23404"
 fedinitstring = "--broker=mainbroker --federates=1"
 deltat = 0.01
 
@@ -33,6 +33,8 @@ h.helicsFederateInfoSetCoreName(fedinfo, "Test Federate")
 # Set core type from string #
 h.helicsFederateInfoSetCoreTypeFromString(fedinfo, "zmq")
 
+
+
 # Federate init string #
 h.helicsFederateInfoSetCoreInitString(fedinfo, fedinitstring)
 
@@ -42,42 +44,53 @@ h.helicsFederateInfoSetCoreInitString(fedinfo, fedinitstring)
 # setTimedelta routine is a multiplier for the default timedelta.
 
 # Set one second message interval #
-h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, deltat)
+h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, 60 * 60)
 #h.helicsFederateInfoSetIntegerProperty(fedinfo, h.helics_property_int_log_level, 20)
 # Create value federate #
 vfed = h.helicsCreateValueFederate("Test Federate", fedinfo)
 print("PI SENDER: Value federate created")
-pubA = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltageA", "double", "kVLN")
-pubB = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltageB", "double", "kVLN")
-pubC = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltageC", "double", "kVLN")
+pubA = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltageA", "double", "")
+pubB = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltageB", "double", "")
+pubC = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltageC", "double", "")
 print("PI SENDER: Publication registered")
-sub1 = h.helicsFederateRegisterSubscription(vfed, "CYME.Source.DEMO-STATION-S1.KWTOT", "")
-sub1 = h.helicsFederateRegisterSubscription(vfed, "CYME.Source.DEMO-STATION-S1.KVARTOT", "")
+sub1 = h.helicsFederateRegisterSubscription(vfed, "CYME.Source.SUB650WYE-S2.KWTOT", "")
+sub2 = h.helicsFederateRegisterSubscription(vfed, "CYME.Source.SUB650WYE-S2.KVARTOT", "")
 #h.helicsInputSetMinimumChange(sub1, 0.1)
 
 # Enter execution mode #
 h.helicsFederateEnterExecutingMode(vfed)
 
-basevolt = 4.16
-
-for t in range(1, 1440):
-    time_requested = t * 60
-    #while time_requested < r_seconds:
-    currenttime = h.helicsFederateRequestTime(vfed, time_requested)
+basevolt = 2.40
+X = 1
+currenttime = 0
+for t in range(0, 25):
+    time_requested = t * 60 * 60 
+    
     iteration_state = h.helics_iteration_result_iterating
-    for i in range(20):
-        currenttime, iteration_state = h.helicsFederateRequestTimeIterative(
-            vfed,
-            time_requested,
-            h.helics_iteration_request_iterate_if_needed
-        )
+    for i in range(5):
+        if i == 0:
+            while currenttime < time_requested:
+                    currenttime = h.helicsFederateRequestTime(vfed, time_requested)
+        else:
+            currenttime, iteration_state = h.helicsFederateRequestTimeIterative(
+                vfed,
+                time_requested,
+                h.helics_iteration_request_force_iteration #helics_iteration_request_force_iteration, helics_iteration_request_iterate_if_needed
+            )
         print(iteration_state)
-        h.helicsPublicationPublishDouble(pubA, basevolt + random.random()/30)
-        h.helicsPublicationPublishDouble(pubB, basevolt + random.random()/30)
-        h.helicsPublicationPublishDouble(pubC, basevolt + random.random()/30)
-        value = h.helicsInputGetVector(sub1)
-        print("PyDSS.Circuit.heco19021.TotalPower: {} kW @ time: {}".format(value, currenttime))
+        A = basevolt + random.random()/X
+        B = basevolt + random.random()/X
+        C = basevolt + random.random()/X
+        h.helicsPublicationPublishDouble(pubA, A)
+        h.helicsPublicationPublishDouble(pubB, B)
+        h.helicsPublicationPublishDouble(pubC, C)
+        print(f"Voltages published: {A}, {B}, {C}")
+        value1 = h.helicsInputGetDouble(sub1)
+        value2 = h.helicsInputGetDouble(sub2)
+        print("PyDSS.Circuit.heco19021.TotalPower: {} kW, {} kvar".format(value1, value2))
+        print(f"Current time: {time_requested}, Granted time: {currenttime}")
         #i+=1
+    
 
 
 h.helicsFederateFinalize(vfed)

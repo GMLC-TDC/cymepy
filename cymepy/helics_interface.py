@@ -123,7 +123,7 @@ class HELICS:
         h.helicsFederateInfoSetBroker(self.fedinfo, self.settings['helics']['broker'])
         h.helicsFederateInfoSetBrokerPort(self.fedinfo ,self.settings['helics']['broker_port'])
         h.helicsFederateInfoSetTimeProperty(self.fedinfo, h.helics_property_time_delta,
-                                                 self.settings['helics']['time_delta'])
+                                                 self.settings['project']['time_step_min'] * 60)
         h.helicsFederateInfoSetIntegerProperty(self.fedinfo, h.helics_property_int_log_level,
                                                     self.settings['helics']['helics_logging_level'])
 
@@ -267,25 +267,29 @@ class HELICS:
 
     def request_time_increment(self):
         error = sum([abs(y["dStates"][0] - y["dStates"][1]) for k, x in self.Subscriptions.items() for y in x])
-        r_seconds = self.Solver.GetTotalSeconds()
+        r_seconds = self.Solver.GetTotalSeconds() 
         if not self.settings['helics']['coiter_mode']:
             while self.c_seconds < r_seconds:
                 self.c_seconds = h.helicsFederateRequestTime(self.cymeFederate, r_seconds)
             self.__Logger.info('Time requested: {} - time granted: {} '.format(r_seconds, self.c_seconds))
             return True, self.c_seconds
         else:
-            self.c_seconds, iteration_state = h.helicsFederateRequestTimeIterative(
-                self.cymeFederate,
-                r_seconds,
-                h.helics_iteration_request_iterate_if_needed
-            )
-            self.__Logger.info('Time requested: {} - time granted: {} error: {} it: {}'.format(
-                r_seconds, self.c_seconds, error, self.itr))
-            if error > -1 and self.itr < self.settings['helics']["max_coiter"]:
+            if self.itr == 0:
+                while self.c_seconds < r_seconds:
+                    self.c_seconds = h.helicsFederateRequestTime(self.cymeFederate, r_seconds)
+            else:
+                self.c_seconds, iteration_state = h.helicsFederateRequestTimeIterative(
+                    self.cymeFederate,
+                    r_seconds,
+                    h.helics_iteration_request_force_iteration
+                )
+                self.__Logger.info('Time requested: {} - time granted: {} error: {} it: {}'.format(
+                    r_seconds, self.c_seconds, error, self.itr))
+            if error > -1 and self.itr < self.settings['helics']["max_coiter"] - 1:
                 self.itr += 1
                 return False, self.c_seconds
             else:
-                self.itr = 0
+                self.itr = 0         
                 return True, self.c_seconds
 
     # def __del__(self):
