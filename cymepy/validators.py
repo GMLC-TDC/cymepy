@@ -36,7 +36,8 @@ class Project_Settings(BaseModel):
     error_tolerance: confloat(gt=0)
     simulation_type: SIMULATION_TYPE
     project_path: str
-    mdb_file: str
+    network_mdb_file: str
+    profiles_mdb_file: str
     sxst_file: str
     cyme_installation_directory: str
 
@@ -99,6 +100,7 @@ class Profile_Settings(BaseModel):
     use_profiles: bool
     use_internal_profile_manager: bool
     source_type = PROFILE_SOURCE_TYPES
+    mapping = str
     source = str
     is_relavtive_path = bool
 

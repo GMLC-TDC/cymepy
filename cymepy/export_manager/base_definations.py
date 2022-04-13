@@ -34,7 +34,7 @@ class ExportManager(abc.ABC):
                     devType = getattr(self.cympy.enums.DeviceType, cName)
                     devices = self.cympy.study.ListDevices(devType)
                     if devices:
-                        for device in devices:
+                        for device in devices:                 
                             eName = device.DeviceNumber
                             if exportInfo["regex_filter"]:
                                 pattern = re.compile(exportInfo["regex_filter"])

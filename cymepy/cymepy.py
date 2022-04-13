@@ -25,6 +25,9 @@ class cymeInstance:
             import cympy
             import cympy.rm
             import cympy.db
+
+            print(dir(cympy.enums.NodeType))
+          
             cympy.app.ActivateRefresh(False)
             self.cympy = cympy
         except:
@@ -32,17 +35,25 @@ class cymeInstance:
             raise Exception("Cyme module not found.")
 
         if self.settings["profiles"]["use_profiles"] and self.settings["profiles"]["use_internal_profile_manager"]:
-            if self.settings['project']["mdb_file"]:
+            if self.settings['project']["profiles_mdb_file"]:
+                #cympy.db.Disconnect()
+                self.__Logger.info('Connecting to CYME profile database')
                 conn_info = cympy.db.ConnectionInformation()
                 profiles_path = os.path.join(
                     self.settings['project']["project_path"],
                     'model',
-                    self.settings['project']["mdb_file"]
+                    self.settings['project']["profiles_mdb_file"]
                 )
                 assert os.path.exists(profiles_path), f"The profiles file: {profiles_path} does not exist"
                 conn_info.LoadProfile = cympy.db.MDBDataSource()
                 conn_info.LoadProfile.Path = profiles_path
                 cympy.db.Connect(conn_info)
+               
+                if not cympy.db.IsConnected():
+                    self.__Logger.warning(f'Failed to connect to database')
+                else:
+                    self.__Logger.info(f'Database connected sucessfully')
+                
 
         self.__Logger.info(cympy.version + ' created sucessfully.')
         self.projectPath = os.path.join(
@@ -60,14 +71,16 @@ class cymeInstance:
         else:
             raise Exception(f"Project path: {self.projectPath} does not exist")
 
+        self.check_sources()
         self.simObj = Solver(cympy, SettingsDict, self.__Logger)
 
-        if self.settings["profiles"]["source_type"] == "h5":
-            from cymepy.profile_manager.hooks.HDF5 import ProfileManager
-            self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
-        elif self.settings["profiles"]["source_type"] == "mdb":
-            from cymepy.profile_manager.hooks.ACCESS import ProfileManager
-            self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
+        if self.settings["profiles"]["use_profiles"] and not self.settings["profiles"]["use_internal_profile_manager"]:
+            if self.settings["profiles"]["source_type"] == "h5":
+                from cymepy.profile_manager.hooks.HDF5 import ProfileManager
+                self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
+            elif self.settings["profiles"]["source_type"] == "mdb":
+                from cymepy.profile_manager.hooks.ACCESS import ProfileManager
+                self.profile_manager = ProfileManager(self.cympy, self.simObj, self.settings, self.__Logger)
 
         self.devices = {}
         if self.settings['project']["simulation_type"] == "QSTS":
@@ -80,6 +93,25 @@ class cymeInstance:
             self.HI = HELICS(SettingsDict, self.cympy, self.simObj, self.__Logger)
 
         return
+
+    def check_sources(self):
+        sources = self.cympy.study.ListDevices(self.cympy.enums.DeviceType.Source)
+        i = 1
+        if not sources:
+            source_nodes = self.cympy.study.ListNodes(self.cympy.enums.NodeType.SourceNode)
+            networks = self.cympy.study.ListNetworks()
+            for node in source_nodes:
+                nodeID = node.ID.split("-")[0]
+                for network in networks:
+                    red_network = network.split(">")[1]
+                    if red_network == nodeID:
+                        self.cympy.study.AddSource(network, "DEFAULT", f"NEW-SOURCE-{i}", node)
+                        self.__Logger.info(f"Source added to network {network} at bus {node.ID}")
+                        i += 1
+        sources = self.cympy.study.ListDevices(self.cympy.enums.DeviceType.Source)
+        print(sources)    
+        return
+
 
     def get_devices(self, elm_type, var_list):
         enumerator = getattr(self.cympy.enums.DeviceType, elm_type)
@@ -114,8 +146,8 @@ class cymeInstance:
         return
 
     def runStep(self, increment_flag):
-
-        self.profile_manager.update()
+        if self.settings["profiles"]["use_profiles"] and not self.settings["profiles"]["use_internal_profile_manager"]:
+            self.profile_manager.update()
         if self.settings['helics']['cosimulation_mode']:
             self.HI.update_subscriptions()
             pass

@@ -22,7 +22,7 @@ class BaseProfileManager(abc.ABC):
                 options["project"]["project_path"], options["profiles"]["source"]
             )
         self.mapping_file = os.path.join(
-            options["project"]["project_path"], CORE_CYMEPY_PROJECT_FILES.MAPPING_FILE.value
+            options["project"]["project_path"], options['profiles']['mapping']
         )
         self.Profiles = {}
         self.mapping = toml.load(open(self.mapping_file , "r"))
@@ -75,26 +75,32 @@ class BaseProfile(abc.ABC):
                 value = value1
             mult = self.valueSettings[objName]['multiplier']
             if self.valueSettings[objName]['normalize']:
-                valueF = value / self.attrs["max"] * mult
+                valueF = float(value) / float(self.attrs["max"]) * float(mult)
             else:
-                valueF = value * mult
+                valueF = float(value) * float(mult)
             if isinstance(self.attrs["units"], np.ndarray):
-                unit = self.attrs["units"][0].decode()
+                unit = self.attrs["units"][0]
             else:
-                unit = self.attrs["units"].decode()
+                unit = self.attrs["units"]
 
             phases = self.sim_instance.study.QueryInfoDevice("LoadPhase", obj.DeviceNumber, obj.DeviceType)
+            config = self.sim_instance.study.QueryInfoDevice("LoadConfig", obj.DeviceNumber, obj.DeviceType)
             phasesType = self.sim_instance.study.QueryInfoDevice("LoadPhaseType", obj.DeviceNumber, obj.DeviceType)
-            if phasesType == 'ByPhase':
-                if phases:
-                    phases = [Ph for Ph in phases]
+           
+            if config != "CT":
+                if phasesType == 'ByPhase':
+                    if phases:
+                        phases = [Ph for Ph in phases]
+                    else:
+                        phases = ["A", "B", "C"]
+                        self.logger.warning(f"No phase info returned for element: {class_name}.{element_name}. Defaulting to ABC configuration")
+                    loadMult = 1 / len(phases)
                 else:
-                    phases = ["A", "B", "C"]
-                    self.logger.warning(f"No phase info returned for element: {class_name}.{element_name}. Defaulting to ABC configuration")
-                loadMult = 1 / len(phases)
+                    phases = [phases]
+                    loadMult = 1
             else:
-                phases = [phases]
                 loadMult = 1
+                phases = ['A', 'B', 'C']
 
             if obj.DeviceType in self.isLoad:
                 ppty = FIELD_MAP[class_name][unit]
@@ -106,16 +112,35 @@ class BaseProfile(abc.ABC):
                         f"{class_name}.{element_name} is of type {loadtype}. A {unit} profile has been attached. Value could not be updated.")
                 else:
                     load = self.sim_instance.study.GetLoad(obj.DeviceNumber, self.sim_instance.enums.LoadType.Spot)
-                    for ph in phases:
-                        en = getattr(self.sim_instance.enums.Phase, ph)
-                        load.SetValue(valueF * loadMult, f"LoadValue.{unit.upper()}", obj.DeviceNumber, en, "DEFAULT")
-                        kw = load.GetValue(f"LoadValue.{unit.upper()}", obj.DeviceNumber, en, "DEFAULT")
-
+                    if config != "CT":
+                        for ph in phases:
+                            en = getattr(self.sim_instance.enums.Phase, ph)
+                            load_value = valueF * loadMult
+                            load.SetValue(load_value, f"LoadValue.{unit.upper()}", obj.DeviceNumber, en, "DEFAULT")
+                            #kw = load.GetValue(f"LoadValue.{unit.upper()}", obj.DeviceNumber, en, "DEFAULT")
+                    else:   
+                        success = False
+                        for ph in phases:
+                            try: 
+                                en = getattr(self.sim_instance.enums.Phase, ph)
+                                load_value = valueF * loadMult
+                                load.SetValue(load_value, f"LoadValue.{unit.upper()}", obj.DeviceNumber, en, "DEFAULT")
+                                kw = load.GetValue(f"LoadValue.{unit.upper()}", obj.DeviceNumber, en, "DEFAULT")
+                                if obj.DeviceNumber == "P21ULV28115_LOAD_P21ULV28115":
+                                    print(obj.DeviceNumber, kw)
+                                success = True
+                                break
+                            except:
+                                pass
+                        if not success:
+                            raise Exception(f"Unable to find correct phase for device {obj.DeviceNumber}")
+                           
             if obj.DeviceType is self.sim_instance.enums.DeviceType.Photovoltaic:
                 if unit in PROPERTY_MAP:
                     relevant_ppty = PROPERTY_MAP[unit]
                     key = FIELD_MAP[class_name][relevant_ppty]
-                    obj.SetValue(valueF * loadMult, f"{key}.{relevant_ppty}")
+                    load_value = valueF * loadMult
+                    obj.SetValue(load_value, f"{key}.{relevant_ppty}")
                 else:
                     self.logger.warning(f"Units defined for {unit} are  invalid for obj type {class_name}")
 

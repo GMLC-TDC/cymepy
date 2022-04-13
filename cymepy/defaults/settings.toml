@@ -6,7 +6,8 @@ max_iter = 50
 error_tolerance = 0.001
 simulation_type = "QSTS"
 project_path = ""
-mdb_file = ""
+network_mdb_file = ""
+profiles_mdb_file = ""
 sxst_file = ""
 cyme_installation_directory = "C:\\Program Files\\CYME\\CYME"
 

@@ -1,6 +1,6 @@
 from cymepy.profile_manager.common import PROFILE_TYPES, DEFAULT_PROFILE_SETTINGS
 from cymepy.profile_manager.base_definations import BaseProfileManager, BaseProfile
-from cymepy.common import DATE_FORMAT
+from cymepy.common import DATE_FORMAT, DATE_FORMAT2
 import datetime
 import h5py
 import copy
@@ -60,7 +60,6 @@ class ProfileManager(BaseProfileManager):
             found = False
             for device in devices:
                 if eName == device.DeviceNumber:
-
                     devicesObjects[x['object']] = device
                     found = True
                     break
@@ -89,13 +88,15 @@ class Profile(BaseProfile):
         self.valueSettings = {x['object']: {**DEFAULT_PROFILE_SETTINGS, **x} for x in mapping_dict}
         self.attrs = self.dataset.attrs
         self.update_profile_settings()
-
-
         pass
 
     def update_profile_settings(self):
-        self.sTime = datetime.datetime.strptime(self.attrs["sTime"].decode(), DATE_FORMAT)
-        self.eTime = datetime.datetime.strptime(self.attrs["eTime"].decode(), DATE_FORMAT)
+        try:
+            self.sTime = datetime.datetime.strptime(self.attrs["sTime"], DATE_FORMAT)
+            self.eTime = datetime.datetime.strptime(self.attrs["eTime"], DATE_FORMAT)
+        except:
+            self.sTime = datetime.datetime.strptime(self.attrs["sTime"], DATE_FORMAT2)
+            self.eTime = datetime.datetime.strptime(self.attrs["eTime"], DATE_FORMAT2)
         self.simRes, _, _ = self.solver.SimulationSteps()
         self.Time = copy.deepcopy(self.solver.GetDateTime())
 
