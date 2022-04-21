@@ -7,9 +7,31 @@
 "properties" = ["IA", "IB", "IC"]
 
 [["DistributedLoad"]]
-"regex_filter" = "\\b\\d-\\d"
-"properties" = ["IA", "IB", "IC"]
+"regex_filter" = "\\b\\d\\d.\\d"
+"properties" = ["KVAA"]
+
+
+# [["ShuntCapacitor"]]
+# "regex_filter" = ""
+# "properties" = ["CapStatus"] 
+
+# [["Regulator"]]
+# "regex_filter" = ""
+# "properties" = ["RegTapA"] # , "KVAB", "KVAC"
+
+# [["SpotLoad"]]
+# "regex_filter" = ""
+# "properties" = ["KVAA"] # , "KVAB", "KVAC"
 
 [["Source"]]
 "regex_filter" = ""
-"properties" = ["KWTOT", "KVARTOT", "OperatingVoltageA"]
+"properties" = ["KWTOT"]# , "KVARTOT", "OperatingVoltageA"
+
+[["OverheadLineUnbalanced"]]
+"regex_filter" = ""
+"properties" = ["IA"]
+
+[["OverheadLine"]]
+"regex_filter" = ""
+"properties" = ["IA"]
+

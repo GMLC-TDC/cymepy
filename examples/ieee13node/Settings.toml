@@ -5,8 +5,9 @@ time_step_min = 60.0
 max_iter = 50
 error_tolerance = 0.001
 simulation_type = "QSTS"
-project_path = "C:\\Users\\alatif\\Desktop\\CYMEPY\\examples\\ieee13node"
-mdb_file = "Feeder1_2.mdb"
+project_path = "C:/Users/alatif/Documents/GitHub/cymepy/examples/ieee13node"
+network_mdb_file = "Feeder1_2.mdb"
+profiles_mdb_file = ""
 sxst_file = "IEEE_13_node_test_feeder.sxst"
 cyme_installation_directory = "C:\\Program Files (x86)\\CYME\\CYME"
 
@@ -40,3 +41,4 @@ use_internal_profile_manager = false
 source_type = "h5"
 source = "Profiles.hdf5"
 is_relavtive_path = true
+mapping = 'Mapping.toml'

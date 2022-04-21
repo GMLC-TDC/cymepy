@@ -1,5 +1,6 @@
 from cymepy.common import CORE_CYMEPY_PROJECT_FILES
 from cymepy.validators import validate_settings
+from cymepy.helics_mapping import HELICS_MAPPING
 import helics as h
 import toml
 import os
@@ -16,12 +17,14 @@ class HELICS:
         'number': 'int64',
         'real': 'double',
         '': 'double',
+        'string': 'string',
     }
 
     def __init__(self, settings, cymepy, Solver, logger):
         self.__Logger = logger
         self.cympy = cymepy
         self.settings = settings
+        
         self.Solver = Solver
         lf = cymepy.sim.LoadFlow()
         lf.Run()
@@ -37,6 +40,7 @@ class HELICS:
 
         self.create_helics_federate()
         self.registerPublications()
+        self.register_standard_publications()
         self.registerSubscriptions()
 
         h.helicsFederateEnterExecutingModeIterative(
@@ -134,6 +138,78 @@ class HELICS:
 
         return
 
+    def register_standard_publications(self):
+        pubpath = os.path.join(
+            self.settings["project"]['project_path'],
+            CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE.value
+        )
+
+        publicationDict = toml.load(open(pubpath, "r"))
+        publicationDict = validate_settings(publicationDict, CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE)
+        
+        self.standard_publications = []
+        for cName, pubInfoList in publicationDict.items():
+            for pubInfo in pubInfoList:
+                if cName not in self.validTypes:
+                    raise Exception(f"{cName} is not a valid CYME device type. "
+                                    f"For valid device type, see cympy.enums.DeviceType")
+                else:
+                    device_type = getattr(self.cympy.enums.DeviceType, cName)
+                    devices = self.cympy.study.ListDevices(device_type)
+                    if devices:
+                        for device in devices:
+                            eName = device.DeviceNumber
+                            if pubInfo["regex_filter"]:
+                                pattern = re.compile(pubInfo["regex_filter"])
+                                matches = pattern.search(eName)
+                                if matches:
+                                    for ppty_name in pubInfo["properties"]:
+                                        value =  self.get_value(device, cName, ppty_name)
+                                        hmap = HELICS_MAPPING(self.cympy, device, cName, ppty_name, value, self.settings['helics']['federate_name'])
+                                        self.update_publication_object(hmap)
+                                        self.standard_publications.append(hmap)
+                            else:
+                                for ppty_name in pubInfo["properties"]:
+                                    value =  self.get_value(device, cName, ppty_name)
+                                    hmap = HELICS_MAPPING(self.cympy, device, cName, ppty_name, value, self.settings['helics']['federate_name'])
+                                    self.update_publication_object(hmap)
+                                    self.standard_publications.append(hmap)
+        for M in self.standard_publications:
+            print(M)
+        
+        return
+    
+    def update_publication_object(self, hmap):
+        pub_inst = h.helicsFederateRegisterGlobalTypePublication(
+                self.cymeFederate,
+                hmap.pubname,
+                hmap.publication_type,
+                hmap.units
+            ) 
+        for k, v in hmap.tags.items():
+            h.helicsPublicationSetTag(pub=pub_inst, tagname=k, tagvalue=v)
+        hmap.pub = pub_inst
+        return
+
+    def publish(self):
+        for helics_map in self.standard_publications:
+            value = helics_map.value
+            if isinstance(value, float):
+                h.helicsPublicationPublishDouble(helics_map.pub, value)
+            elif isinstance(value, str):
+                h.helicsPublicationPublishString(helics_map.pub, value)
+            elif isinstance(value, bool):
+                h.helicsPublicationPublishBoolean(helics_map.pub, value)
+            elif isinstance(value, int):
+                h.helicsPublicationPublishInteger(helics_map.pub, value)
+            elif isinstance(value, complex):
+                h.helicsPublicationPublishComplex(helics_map.pub, value)
+            elif isinstance(value, list):
+                if isinstance(value[0], complex):
+                    h.helicsPublicationPublishComplexVector(helics_map.pub, value)
+                else:
+                    h.helicsPublicationPublishVector(helics_map.pub, value)
+
     def registerPublications(self):
         pubpath = os.path.join(
             self.settings["project"]['project_path'],
@@ -176,6 +252,17 @@ class HELICS:
 
         return found, None, None, None
 
+    def get_value(self, device, cName, ppty):
+        keyword = self.cympy.app.GetKeyword(ppty)
+        if keyword is None:
+            found, units, defaultValue, cType = self.isProperty(device, ppty)
+            if not found:
+                raise Exception(f"{ppty} is neither a valid keyword not a valid property of object type {cName}")
+            res = device.GetValue(ppty)
+        else:
+            res = self.cympy.study.QueryInfoDevice(ppty, device.DeviceNumber, device.DeviceType)
+        return res
+
     def create_publication(self, pubInfo, device, cName, eName):
         self.__Logger.info("Creating publications")
         for propertyX in pubInfo["properties"]:
@@ -192,6 +279,7 @@ class HELICS:
             if res:
                 self.Publications[pubname] = {
                     "elementObj": device,
+                    
                     "publicationObj": h.helicsFederateRegisterGlobalTypePublication(
                         self.cymeFederate,
                         pubname,
@@ -220,7 +308,7 @@ class HELICS:
             else:
                 res = pubInfo["elementObj"].GetValue(pubInfo["property"])
 
-            print(pubInfo["property"], res, type(res), pubInfo["dType"], pubInfo["unit"])
+            #print(pubInfo["property"], res, type(res), pubInfo["dType"], pubInfo["unit"])
 
             if pubInfo["dType"].lower() == "complex":
                 h.helicsPublicationPublishComplex(pub, complex(res).real, complex(res).imag)

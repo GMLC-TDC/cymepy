@@ -172,6 +172,7 @@ class cymeInstance:
         if self.settings['helics']['cosimulation_mode']:
             increment_flag, helics_time = self.HI.request_time_increment()
             self.HI.update_publications()
+            self.HI.publish()
             return increment_flag
         else:
             return True

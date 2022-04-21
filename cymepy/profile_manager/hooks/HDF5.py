@@ -92,11 +92,18 @@ class Profile(BaseProfile):
 
     def update_profile_settings(self):
         try:
-            self.sTime = datetime.datetime.strptime(self.attrs["sTime"], DATE_FORMAT)
-            self.eTime = datetime.datetime.strptime(self.attrs["eTime"], DATE_FORMAT)
+            start_time = self.attrs["sTime"].decode()
+            end_time = self.attrs["eTime"].decode()
         except:
-            self.sTime = datetime.datetime.strptime(self.attrs["sTime"], DATE_FORMAT2)
-            self.eTime = datetime.datetime.strptime(self.attrs["eTime"], DATE_FORMAT2)
+            start_time = self.attrs["sTime"]
+            end_time = self.attrs["eTime"]
+            
+        try:
+            self.sTime = datetime.datetime.strptime(start_time, DATE_FORMAT)
+            self.eTime = datetime.datetime.strptime(end_time, DATE_FORMAT)
+        except:
+            self.sTime = datetime.datetime.strptime(start_time, DATE_FORMAT2)
+            self.eTime = datetime.datetime.strptime(end_time, DATE_FORMAT2)
         self.simRes, _, _ = self.solver.SimulationSteps()
         self.Time = copy.deepcopy(self.solver.GetDateTime())
 

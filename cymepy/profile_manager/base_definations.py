@@ -79,10 +79,15 @@ class BaseProfile(abc.ABC):
             else:
                 valueF = float(value) * float(mult)
             if isinstance(self.attrs["units"], np.ndarray):
-                unit = self.attrs["units"][0]
+                try:
+                    unit = self.attrs["units"][0].decode()
+                except:
+                    unit = self.attrs["units"][0]
             else:
-                unit = self.attrs["units"]
-
+                try:
+                    unit = self.attrs["units"].decode()
+                except:
+                    unit = self.attrs["units"]
             phases = self.sim_instance.study.QueryInfoDevice("LoadPhase", obj.DeviceNumber, obj.DeviceType)
             config = self.sim_instance.study.QueryInfoDevice("LoadConfig", obj.DeviceNumber, obj.DeviceType)
             phasesType = self.sim_instance.study.QueryInfoDevice("LoadPhaseType", obj.DeviceNumber, obj.DeviceType)
