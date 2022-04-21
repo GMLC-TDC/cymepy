@@ -26,7 +26,7 @@ class cymeInstance:
             import cympy.rm
             import cympy.db
 
-            print(dir(cympy.enums.NodeType))
+            print(dir(cympy.enums.DeviceType))
           
             cympy.app.ActivateRefresh(False)
             self.cympy = cympy
@@ -99,17 +99,27 @@ class cymeInstance:
         i = 1
         if not sources:
             source_nodes = self.cympy.study.ListNodes(self.cympy.enums.NodeType.SourceNode)
+            sections = self.cympy.study.ListSections()
             networks = self.cympy.study.ListNetworks()
-            for node in source_nodes:
-                nodeID = node.ID.split("-")[0]
-                for network in networks:
-                    red_network = network.split(">")[1]
-                    if red_network == nodeID:
-                        self.cympy.study.AddSource(network, "DEFAULT", f"NEW-SOURCE-{i}", node)
-                        self.__Logger.info(f"Source added to network {network} at bus {node.ID}")
-                        i += 1
-        sources = self.cympy.study.ListDevices(self.cympy.enums.DeviceType.Source)
-        print(sources)    
+            for section in sections:
+                for node in source_nodes:
+                    if node.ID == section.FromNode.ID: 
+                        nodeID = node.ID.split("-")[0]
+                        for network in networks:
+                            red_network = network.split(">")[1]
+                            if red_network == nodeID:
+                                source = self.cympy.study.AddDevice(
+                                    f"NEW-SOURCE-{i}", 
+                                    self.cympy.enums.DeviceType.Source, 
+                                    section.ID, 
+                                    "DEFAULT"
+                                )
+                                #source.SetValue(12.47, 'OperatingVoltageA')
+                                #source.SetValue(12.47, 'OperatingVoltageB')
+                                #source.SetValue(12.47, 'OperatingVoltageC')
+                                self.__Logger.info(f"Source added to network {network} at section {section}")
+                                i += 1
+        #sources = self.cympy.study.ListDevices(self.cympy.enums.DeviceType.Source)
         return
 
 
