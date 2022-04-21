@@ -1,27 +1,26 @@
-[["InductionMotor"]]
-"regex_filter" = "\\b\\d\\d.\\d"
-"properties" = ["kW"]
-
-[["Transformer"]]
-"regex_filter" = "\\b\\d\\d.\\d"
-"properties" = ["IA", "IB", "IC"]
+# [["Transformer"]]
+# "regex_filter" = "\\b\\d\\d.\\d"
+# "properties" = ["IA", "IB", "IC"]
 
 [["DistributedLoad"]]
 "regex_filter" = "\\b\\d\\d.\\d"
 "properties" = ["KVAA"]
 
+[["ShuntCapacitor"]]
+"regex_filter" = ""
+"properties" = ["CapStatus"] 
 
-# [["ShuntCapacitor"]]
-# "regex_filter" = ""
-# "properties" = ["CapStatus"] 
+[["Regulator"]]
+"regex_filter" = ""
+"properties" = ["RegTapA"] # , "KVAB", "KVAC"
 
-# [["Regulator"]]
-# "regex_filter" = ""
-# "properties" = ["RegTapA"] # , "KVAB", "KVAC"
+[["SpotLoad"]]
+"regex_filter" = ""
+"properties" = ["KVAA"] # , "KVAB", "KVAC"
 
-# [["SpotLoad"]]
-# "regex_filter" = ""
-# "properties" = ["KVAA"] # , "KVAB", "KVAC"
+[["Switch"]]
+"regex_filter" = ""
+"properties" = ["ProtStateA"] # , "ProtStateB", "ProtStateC"
 
 [["Source"]]
 "regex_filter" = ""

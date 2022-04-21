@@ -2,9 +2,10 @@ import helics
 import enum
 
 class PROPERTY(enum.Enum):
-    Enabled = {
+    ProtStateA = {
         "type": "bool",
         "vector": True,
+        "vector_list": ["ProtStateA", "ProtStateB", "ProtStateC"],
         "prefix": "switch",
         "suffix": "status",
         "unit": "",
@@ -134,14 +135,20 @@ class PUBLICATION_MAP(enum.Enum):
     OverheadLine= {
         PROPERTY.IA.name : PROPERTY.IA.value,
     }
-    
+    Switch = {
+        PROPERTY.ProtStateA.name : PROPERTY.ProtStateA.value,
+    }
     
 CAPACITOR_STATES = {
     "Tripped" : 0,
     "Closed" : 1,
     "Connected" : 1,
 }
-    
+
+SWITCH_STATES = {
+    "Open" : 0,
+    "Close" : 1,
+}
 
 class HELICS_MAPPING:
 
@@ -248,6 +255,7 @@ class HELICS_MAPPING:
                             val.append(bool(value))
                         else:
                             val.append(value)
+            print(self.cname, self.ename, self.ppty, val)
         return val
 
     def get_value(self, ppty):
