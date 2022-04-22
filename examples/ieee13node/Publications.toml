@@ -1,6 +1,6 @@
-# [["Transformer"]]
-# "regex_filter" = "\\b\\d\\d.\\d"
-# "properties" = ["IA", "IB", "IC"]
+[["Node"]]
+"regex_filter" = ""
+"properties" = ["VLNA"]
 
 [["DistributedLoad"]]
 "regex_filter" = "\\b\\d\\d.\\d"

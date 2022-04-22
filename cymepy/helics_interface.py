@@ -28,15 +28,20 @@ class HELICS:
         self.Solver = Solver
         lf = cymepy.sim.LoadFlow()
         lf.Run()
+        self.nodes = []
 
         self.itr = 0
         self.c_seconds = 0
         self.c_seconds_old = -1
 
         self.validTypes = []
+        self.validNodeTypes = []
         for k, v in self.cympy.enums.DeviceType.__dict__.items():
             if isinstance(v, int):
                 self.validTypes.append(k)
+        for k, v in self.cympy.enums.NodeType.__dict__.items():
+            if isinstance(v, int):
+                self.validNodeTypes.append(k)
 
         self.create_helics_federate()
         self.registerPublications()
@@ -68,7 +73,6 @@ class HELICS:
                 else:
                     devType = getattr(self.cympy.enums.DeviceType, cName)
                     devices = self.cympy.study.ListDevices(devType)
-                    print(devices)
                     found = False
                     fDevice = None
                     for device in devices:
@@ -150,34 +154,53 @@ class HELICS:
         self.standard_publications = []
         for cName, pubInfoList in publicationDict.items():
             for pubInfo in pubInfoList:
-                if cName not in self.validTypes:
+                if cName not in self.validTypes and cName not in self.validNodeTypes:
                     raise Exception(f"{cName} is not a valid CYME device type. "
                                     f"For valid device type, see cympy.enums.DeviceType")
                 else:
-                    device_type = getattr(self.cympy.enums.DeviceType, cName)
+                    if cName in self.validTypes:
+                        device_type = getattr(self.cympy.enums.DeviceType, cName)
+                    else: 
+                        device_type = getattr(self.cympy.enums.DeviceType, 'AllDevices')
                     devices = self.cympy.study.ListDevices(device_type)
                     if devices:
                         for device in devices:
                             eName = device.DeviceNumber
                             if pubInfo["regex_filter"]:
                                 pattern = re.compile(pubInfo["regex_filter"])
-                                matches = pattern.search(eName)
+                                if cName in self.validTypes:
+                                    matches = pattern.search(eName)
+                                else:
+                                    node = self.get_node_name(device)
+                                    matches = pattern.search(node)
+                                
                                 if matches:
-                                    for ppty_name in pubInfo["properties"]:
-                                        value =  self.get_value(device, cName, ppty_name)
-                                        hmap = HELICS_MAPPING(self.cympy, device, cName, ppty_name, value, self.settings['helics']['federate_name'])
-                                        self.update_publication_object(hmap)
-                                        self.standard_publications.append(hmap)
+                                    self.create_propery_publication(device, cName, pubInfo)
                             else:
-                                for ppty_name in pubInfo["properties"]:
-                                    value =  self.get_value(device, cName, ppty_name)
-                                    hmap = HELICS_MAPPING(self.cympy, device, cName, ppty_name, value, self.settings['helics']['federate_name'])
-                                    self.update_publication_object(hmap)
-                                    self.standard_publications.append(hmap)
+                                self.create_propery_publication(device, cName, pubInfo)
+                                
+                                       
+                                  
         for M in self.standard_publications:
             print(M)
         
         return
+    def create_propery_publication(self, device, cName, pubInfo):
+        for ppty_name in pubInfo["properties"]:
+            if cName in self.validTypes:
+                self.create_publication_object( device, cName, ppty_name)
+            else:            
+                node = self.get_node_name(device)
+                if node and node not in self.nodes:
+                    self.create_publication_object( device, cName, ppty_name, node)
+
+    def create_publication_object(self, device, cName, ppty_name, node=None):
+        value =  self.get_value(device, cName, ppty_name)
+        hmap = HELICS_MAPPING(self.cympy, device, cName, ppty_name, value, self.settings['helics']['federate_name'], node)
+        self.update_publication_object(hmap)
+        self.standard_publications.append(hmap)
+        if node:
+            self.nodes.append(node)
     
     def update_publication_object(self, hmap):
         pub_inst = h.helicsFederateRegisterGlobalTypePublication(
@@ -222,25 +245,35 @@ class HELICS:
         self.Publications = {}
         for cName, pubInfoList in publicationDict.items():
             for pubInfo in pubInfoList:
-                if cName not in self.validTypes:
+                if cName not in self.validTypes and cName not in self.validNodeTypes:
                     raise Exception(f"{cName} is not a valid CYME device type. "
                                     f"For valid device type, see cympy.enums.DeviceType")
                 else:
-                    devType = getattr(self.cympy.enums.DeviceType, cName)
-                    devices = self.cympy.study.ListDevices(devType)
-                    if devices:
-                        for device in devices:
-                            eName = device.DeviceNumber
-                            if pubInfo["regex_filter"]:
-                                pattern = re.compile(pubInfo["regex_filter"])
-                                matches = pattern.search(eName)
-                                if matches:
+                    if cName in self.validTypes:
+                        devType = getattr(self.cympy.enums.DeviceType, cName)
+                        devices = self.cympy.study.ListDevices(devType)
+                        if devices:
+                            for device in devices:
+                                eName = device.DeviceNumber
+                                if pubInfo["regex_filter"]:
+                                    pattern = re.compile(pubInfo["regex_filter"])
+                                    matches = pattern.search(eName)
+                                    if matches:
+                                        self.create_publication(pubInfo, device, cName, eName)
+                                else:
                                     self.create_publication(pubInfo, device, cName, eName)
-                            else:
-                                self.create_publication(pubInfo, device, cName, eName)
-                    else:
-                        self.__Logger.warn(f"Model of type {cName} not found in the distribution model")
+                        else:
+                            self.__Logger.warn(f"Model of type {cName} not found in the distribution model")
         return
+
+    def get_node_name(self, device):
+        section_id = device.SectionID
+        section = self.cympy.study.GetSection(section_id)
+        
+        if section:
+            node = section.FromNode.ID
+            return node
+        return None
 
     def isProperty(self,device, property):
         properties = self.cympy.dm.Describe(device.GetObjType())
@@ -264,7 +297,6 @@ class HELICS:
         return res
 
     def create_publication(self, pubInfo, device, cName, eName):
-        self.__Logger.info("Creating publications")
         for propertyX in pubInfo["properties"]:
             keyword = self.cympy.app.GetKeyword(propertyX)
             if keyword is None:
@@ -278,8 +310,7 @@ class HELICS:
             T = self.type_info[keyword.Type.lower()] if keyword is not None else self.type_info[cType]
             if res:
                 self.Publications[pubname] = {
-                    "elementObj": device,
-                    
+                    "elementObj": device,   
                     "publicationObj": h.helicsFederateRegisterGlobalTypePublication(
                         self.cymeFederate,
                         pubname,
@@ -308,8 +339,7 @@ class HELICS:
             else:
                 res = pubInfo["elementObj"].GetValue(pubInfo["property"])
 
-            #print(pubInfo["property"], res, type(res), pubInfo["dType"], pubInfo["unit"])
-
+     
             if pubInfo["dType"].lower() == "complex":
                 h.helicsPublicationPublishComplex(pub, complex(res).real, complex(res).imag)
             elif pubInfo["dType"].lower() == 'real':

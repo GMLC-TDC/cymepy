@@ -51,17 +51,7 @@ class PROPERTY(enum.Enum):
             "federate"
             ],
         }
-    tap = {
-        "type": "double",
-        "vector": False,
-        "prefix": "RegulatingControl",
-        "suffix": "pos",
-        "unit": "pu",
-        "tags" : [
-            "phases",
-            "federate"
-        ],
-    }
+   
     RegTapA = {
         "mapped_object": "Regulator",
         "type": "integer",
@@ -100,45 +90,46 @@ class PROPERTY(enum.Enum):
         ],
     }
 
-class PUBLICATION_MAP(enum.Enum):
-    Source = {
+PUBLICATION_MAP = {
+    "Transformer" : {
+        PROPERTY.KVAA.name : PROPERTY.KVAA.value,
+        PROPERTY.IA.name : PROPERTY.IA.value,
+    },
+    "Source" : {
         PROPERTY.KWTOT.name : PROPERTY.KWTOT.value
-    }
-    SpotLoad = {
+    },
+    "SpotLoad" : {
         PROPERTY.KVAA.name : PROPERTY.KVAA.value,
         PROPERTY.IA.name : PROPERTY.IA.value,
-    }
-
-    DistributedLoad = {
+    },
+    "DistributedLoad" : {
         PROPERTY.KVAA.name : PROPERTY.KVAA.value,
         PROPERTY.IA.name : PROPERTY.IA.value,
-    }
-    Regulator = {
-        PROPERTY.tap.name : PROPERTY.tap.value,
+    },
+    "Regulator" : {
+        PROPERTY.RegTapA.name : PROPERTY.RegTapA.value,
         PROPERTY.KVAA.name : PROPERTY.KVAA.value,
         PROPERTY.IA.name : PROPERTY.IA.value,
-    }
-
-    ShuntCapacitor = {
+    },
+    "ShuntCapacitor" : {
         PROPERTY.CapStatus.name : PROPERTY.CapStatus.value,
-    }
-    
-    Bus = {
-        PROPERTY.KVAA.name : PROPERTY.KVAA.value
-    }
-    OverheadLineUnbalanced = {
+    },
+    "OverheadLineUnbalanced" : {
         PROPERTY.IA.name : PROPERTY.IA.value,
-    }
-    OverheadByPhase= {
+    },
+    "OverheadByPhase": {
         PROPERTY.IA.name : PROPERTY.IA.value,
-    }
-    OverheadLine= {
+    },
+    "OverheadLine": {
         PROPERTY.IA.name : PROPERTY.IA.value,
-    }
-    Switch = {
+    },
+    "Switch" : {
         PROPERTY.ProtStateA.name : PROPERTY.ProtStateA.value,
-    }
-    
+    }, 
+    "Node" : {
+        PROPERTY.VLNA.name : PROPERTY.VLNA.value
+    },
+}
 CAPACITOR_STATES = {
     "Tripped" : 0,
     "Closed" : 1,
@@ -152,9 +143,9 @@ SWITCH_STATES = {
 
 class HELICS_MAPPING:
 
-    def __init__(self, cympy, device, device_type, ppty, value, federate):
+    def __init__(self, cympy, device, device_type, ppty, value, federate, node=None):
         self.cympy = cympy
-        
+        self.node = node
         self.cname = device_type
         self.ename = device.DeviceNumber
 
@@ -165,14 +156,15 @@ class HELICS_MAPPING:
         self.federate = federate
 
         found = False
-        for PUBLICATION in PUBLICATION_MAP:
-            if PUBLICATION.name == self.cname:
+        for PUBLICATION, PUBLICATION_PROPERTIES in PUBLICATION_MAP.items():
+            #print(self.cname, PUBLICATION.name)
+            if PUBLICATION == self.cname:
                 for PPTY in PROPERTY:
-                    print(self.cname, self.ename, self.ppty, PPTY.name, self.ppty == PPTY.name)
-                    if PPTY.name == self.ppty:
-                        self.ppty_data = PPTY.value
-                        found = True
-                        break
+                    if self.ppty in PUBLICATION_PROPERTIES:
+                        if PPTY.name == self.ppty:
+                            self.ppty_data = PPTY.value
+                            found = True
+                            break
             if found:
                 break
         if not found:
@@ -186,7 +178,10 @@ class HELICS_MAPPING:
 
     @property
     def pubname(self):
-        return f"{self.ppty_data['prefix']}.{self.ename}.{self.ppty_data['suffix']}"
+        if self.node:
+            return f"{self.ppty_data['prefix']}.{self.node}.{self.ppty_data['suffix']}"
+        else:
+            return f"{self.ppty_data['prefix']}.{self.ename}.{self.ppty_data['suffix']}"
 
     @property
     def tags(self): 
@@ -255,7 +250,6 @@ class HELICS_MAPPING:
                             val.append(bool(value))
                         else:
                             val.append(value)
-            print(self.cname, self.ename, self.ppty, val)
         return val
 
     def get_value(self, ppty):
