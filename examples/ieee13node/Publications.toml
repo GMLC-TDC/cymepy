@@ -1,36 +1,45 @@
 [["Node"]]
+"is_global" = true
 "regex_filter" = ""
 "properties" = ["VLNA"]
 
 [["DistributedLoad"]]
+"is_global" = false
 "regex_filter" = "\\b\\d\\d.\\d"
 "properties" = ["KVAA"]
 
 [["ShuntCapacitor"]]
+"is_global" = false
 "regex_filter" = ""
 "properties" = ["CapStatus"] 
 
 [["Regulator"]]
+"is_global" = false
 "regex_filter" = ""
 "properties" = ["RegTapA"] # , "KVAB", "KVAC"
 
 [["SpotLoad"]]
+"is_global" = false
 "regex_filter" = ""
 "properties" = ["KVAA"] # , "KVAB", "KVAC"
 
 [["Switch"]]
+"is_global" = false
 "regex_filter" = ""
 "properties" = ["ProtStateA"] # , "ProtStateB", "ProtStateC"
 
 [["Source"]]
+"is_global" = false
 "regex_filter" = ""
 "properties" = ["KWTOT"]# , "KVARTOT", "OperatingVoltageA"
 
 [["OverheadLineUnbalanced"]]
+"is_global" = false
 "regex_filter" = ""
 "properties" = ["IA"]
 
 [["OverheadLine"]]
+"is_global" = false
 "regex_filter" = ""
 "properties" = ["IA"]
 

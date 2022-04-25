@@ -1,6 +1,24 @@
 import helics
 import enum
 
+PPTY_NAME_MAP = {
+    "ProtStateA" : "ProtStateA",
+    "ProtStateB" : "ProtStateA",
+    "ProtStateC" : "ProtStateA",
+    "RegTapA" : "RegTapA",
+    "RegTapB" : "RegTapA",
+    "RegTapC" : "RegTapA",
+    "VLNA" : "VLNA",
+    "VLNB" : "VLNA",
+    "VLNC" : "VLNA",
+    "KVAA" : "KVAA",
+    "KVAB" : "KVAA",
+    "KVAC" : "KVAA",
+    "IA" : "IA",
+    "IB" : "IA",
+    "IC" : "IA",
+}
+
 class PROPERTY(enum.Enum):
     ProtStateA = {
         "type": "bool",
@@ -50,8 +68,7 @@ class PROPERTY(enum.Enum):
             "phases",
             "federate"
             ],
-        }
-   
+        } 
     RegTapA = {
         "mapped_object": "Regulator",
         "type": "integer",
@@ -91,10 +108,6 @@ class PROPERTY(enum.Enum):
     }
 
 PUBLICATION_MAP = {
-    "Transformer" : {
-        PROPERTY.KVAA.name : PROPERTY.KVAA.value,
-        PROPERTY.IA.name : PROPERTY.IA.value,
-    },
     "Source" : {
         PROPERTY.KWTOT.name : PROPERTY.KWTOT.value
     },
@@ -108,8 +121,6 @@ PUBLICATION_MAP = {
     },
     "Regulator" : {
         PROPERTY.RegTapA.name : PROPERTY.RegTapA.value,
-        PROPERTY.KVAA.name : PROPERTY.KVAA.value,
-        PROPERTY.IA.name : PROPERTY.IA.value,
     },
     "ShuntCapacitor" : {
         PROPERTY.CapStatus.name : PROPERTY.CapStatus.value,
@@ -143,7 +154,7 @@ SWITCH_STATES = {
 
 class HELICS_MAPPING:
 
-    def __init__(self, cympy, device, device_type, ppty, value, federate, node=None):
+    def __init__(self, cympy, device, device_type, ppty, value, federate, pubInfo, node=None):
         self.cympy = cympy
         self.node = node
         self.cname = device_type
@@ -153,6 +164,7 @@ class HELICS_MAPPING:
         self.obj = device
         self.ppty = ppty
         self.valuex = value
+        self.pubInfo = pubInfo
         self.federate = federate
 
         found = False
@@ -178,10 +190,16 @@ class HELICS_MAPPING:
 
     @property
     def pubname(self):
-        if self.node:
-            return f"{self.ppty_data['prefix']}.{self.node}.{self.ppty_data['suffix']}"
+        if "is_global" not in self.pubInfo or not self.pubInfo["is_global"]:
+            if self.node:
+                return f"{self.ppty_data['prefix']}.{self.node}.{self.ppty_data['suffix']}"
+            else:
+                return f"{self.ppty_data['prefix']}.{self.ename}.{self.ppty_data['suffix']}"
         else:
-            return f"{self.ppty_data['prefix']}.{self.ename}.{self.ppty_data['suffix']}"
+            if self.node:
+                return f"{self.federate}.{self.ppty_data['prefix']}.{self.node}.{self.ppty_data['suffix']}"
+            else:
+                return f"{self.federate}.{self.ppty_data['prefix']}.{self.ename}.{self.ppty_data['suffix']}"
 
     @property
     def tags(self): 
@@ -192,7 +210,7 @@ class HELICS_MAPPING:
     @property
     def units(self):
         return self.ppty_data['unit']
-    
+
     @property
     def publication_type(self):
         value = self.value
@@ -214,7 +232,6 @@ class HELICS_MAPPING:
         else:
             raise Exception(f"Data type {type(value)} not supported")
         return
-
 
     @property
     def value(self):

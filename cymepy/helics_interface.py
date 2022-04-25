@@ -188,22 +188,30 @@ class HELICS:
     def create_propery_publication(self, device, cName, pubInfo):
         for ppty_name in pubInfo["properties"]:
             if cName in self.validTypes:
-                self.create_publication_object( device, cName, ppty_name)
+                self.create_publication_object( device, cName, ppty_name, pubInfo)
             else:            
                 node = self.get_node_name(device)
                 if node and node not in self.nodes:
-                    self.create_publication_object( device, cName, ppty_name, node)
+                    self.create_publication_object( device, cName, ppty_name, pubInfo, node)
 
-    def create_publication_object(self, device, cName, ppty_name, node=None):
+    def create_publication_object(self, device, cName, ppty_name, pubInfo, node=None):
         value =  self.get_value(device, cName, ppty_name)
-        hmap = HELICS_MAPPING(self.cympy, device, cName, ppty_name, value, self.settings['helics']['federate_name'], node)
-        self.update_publication_object(hmap)
+        hmap = HELICS_MAPPING(self.cympy, device, cName, ppty_name, value, self.settings['helics']['federate_name'], pubInfo, node)
+        self.update_publication_object(hmap, pubInfo)
         self.standard_publications.append(hmap)
         if node:
             self.nodes.append(node)
     
-    def update_publication_object(self, hmap):
-        pub_inst = h.helicsFederateRegisterGlobalTypePublication(
+    def update_publication_object(self, hmap, pubInfo):
+        if "is_global" not in pubInfo or not pubInfo["is_global"]:
+            pub_inst = h.helicsFederateRegisterPublication(
+                self.cymeFederate,
+                hmap.pubname,
+                hmap.publication_type,
+                hmap.units
+            )
+        else:    
+            pub_inst = h.helicsFederateRegisterGlobalTypePublication(
                 self.cymeFederate,
                 hmap.pubname,
                 hmap.publication_type,
