@@ -204,7 +204,7 @@ class HELICS:
     
     def update_publication_object(self, hmap, pubInfo):
         if "is_global" not in pubInfo or not pubInfo["is_global"]:
-            pub_inst = h.helicsFederateRegisterPublication(
+            pub_inst = h.helicsFederateRegisterTypePublication(
                 self.cymeFederate,
                 hmap.pubname,
                 hmap.publication_type,

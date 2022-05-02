@@ -1,3 +1,5 @@
+from cmath import rect
+import numpy as np
 import helics
 import enum
 
@@ -8,12 +10,12 @@ PPTY_NAME_MAP = {
     "RegTapA" : "RegTapA",
     "RegTapB" : "RegTapA",
     "RegTapC" : "RegTapA",
-    "VLNA" : "VLNA",
-    "VLNB" : "VLNA",
-    "VLNC" : "VLNA",
-    "KVAA" : "KVAA",
-    "KVAB" : "KVAA",
-    "KVAC" : "KVAA",
+    "VLNA" : "VpuA",
+    "VLNB" : "VpuB",
+    "VLNC" : "VpuC",
+    "VpuA" : "VpuA",
+    "VpuB" : "VpuB",
+    "VpuC" : "VpuC",
     "IA" : "IA",
     "IB" : "IA",
     "IC" : "IA",
@@ -49,6 +51,7 @@ class PROPERTY(enum.Enum):
         "type": "complex",
         "vector": True,
         "vector_list": ["VLNA", "VLNB", "VLNC"],
+        "pair" :  ["PH-AngleA", "PH-AngleB", "PH-AngleC"],
         "prefix": "ConnectivityNode",
         "suffix": "PNV",
         "unit": "V",
@@ -236,26 +239,46 @@ class HELICS_MAPPING:
     @property
     def value(self):
         val = None
+        if self.ppty in PPTY_NAME_MAP:
+            MYPPTY = PPTY_NAME_MAP[self.ppty]
+        else:
+            MYPPTY = self.ppty
         if not self.ppty_data["vector"]:
             if "isreal" in self.ppty_data and self.ppty_data["isreal"]:
-                real_part = self.get_value(self.ppty)
+                real_part = self.get_value(MYPPTY)
                 if "pair" in self.ppty_data:
                     imag_part = self.get_value(self.ppty_data["pair"])
                 val = float(real_part) + 1j * float(imag_part)              
             elif "isreal" in self.ppty_data and not  self.ppty_data["isreal"]:
-                imag_part = self.get_value(self.ppty)
+                imag_part = self.get_value(MYPPTY)
                 if "pair" in self.ppty_data:
                     real_part = self.get_value(self.ppty_data["pair"])
                 val = float(real_part) + 1j * float(imag_part)
             else:
                 if self.cname in ["ShuntCapacitor", 'SeriesCapacitor']:  
-                    val = CAPACITOR_STATES[self.get_value(self.ppty)]
+                    val = CAPACITOR_STATES[self.get_value(MYPPTY)]
         else:
             if "vector_list" in self.ppty_data:
                 
                 val = []
-                for ppty in self.ppty_data["vector_list"]:
-                    value = self.get_value(ppty)
+                for ii, ppty in enumerate(self.ppty_data["vector_list"]):
+                    if ppty in PPTY_NAME_MAP:
+                        MYPPTY = PPTY_NAME_MAP[ppty]
+                    else:
+                        MYPPTY = ppty
+                    
+                    
+
+                    value = self.get_value(MYPPTY)
+
+                    if "pair" in self.ppty_data:
+                        if self.ppty_data["type"] == "complex":
+                            value2 = self.get_value(self.ppty_data["pair"][ii])
+                            try:
+                                nprect = np.vectorize(rect)
+                                value = nprect(float(value), np.deg2rad(float(value2)))      
+                            except:
+                                pass
                     if value:
                         if self.ppty_data["type"] == "complex":
                             val.append(complex(value))
@@ -286,11 +309,12 @@ class HELICS_MAPPING:
         return
 
     def __str__(self):
-        return "<Publication tag: {}\n units: {},\n dtype: {},\n isVector: {},\n tags: {}\nat {}>\n".format(
+        return "<Publication tag: {}\n units: {},\n dtype: {},\n isVector: {},\n tags: {},\n value: {}\nat {}>\n".format(
             self.pubname,
             self.units,
             self.dtype,
             self.isVector,
             self.tags,
+            self.value,
             hex(id(self))
         )
