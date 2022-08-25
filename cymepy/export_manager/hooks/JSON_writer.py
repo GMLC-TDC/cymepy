@@ -7,11 +7,18 @@ class Writer(ExportManager):
     def __init__(self, sim_instance, solver, options, logger, **kwargs):
         super(Writer, self).__init__(sim_instance, solver, options, logger, **kwargs)
         self.results = []
-        self.path = os.path.join(
-            self.settings["project"]['project_path'],
-            'exports',
-            f"{EXPORT_FILENAME}.json"
-        )
+        if not self.settings["project"]['append_to_exported_files']:
+            self.path = os.path.join(
+                self.settings["project"]['project_path'],
+                'exports',
+                f"{EXPORT_FILENAME}.json"
+            )
+        else:
+            self.path = os.path.join(
+                self.settings["project"]['project_path'],
+                'exports',
+                f"{self.settings['project']['append_to_exported_files']}_{EXPORT_FILENAME}.json"
+            )
         pass
 
     def update(self):

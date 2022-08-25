@@ -11,11 +11,18 @@ class Writer(ExportManager):
         self.i = 0
         self.columnLength,_ , _ = solver.SimulationSteps()
         self.logger = logger
-        self.basepath = os.path.join(
-            self.settings["project"]['project_path'],
-            'exports',
-            f"{EXPORT_FILENAME}.h5"
-        )
+        if not self.settings["project"]['append_to_exported_files']:
+            self.basepath = os.path.join(
+                self.settings["project"]['project_path'],
+                'exports',
+                f"{EXPORT_FILENAME}.h5"
+            )
+        else:
+            self.basepath = os.path.join(
+                self.settings["project"]['project_path'],
+                'exports',
+                f"{self.settings['project']['append_to_exported_files']}_{EXPORT_FILENAME}.h5"
+            )
 
         self.logger.info("Creating new h5 store")
         self.store = h5py.File(self.basepath, "w")

@@ -96,31 +96,36 @@ class cymeInstance:
 
     def check_sources(self):
         sources = self.cympy.study.ListDevices(self.cympy.enums.DeviceType.Source)
-        i = 1
         if not sources:
             source_nodes = self.cympy.study.ListNodes(self.cympy.enums.NodeType.SourceNode)
-            sections = self.cympy.study.ListSections()
-            networks = self.cympy.study.ListNetworks()
-            for section in sections:
-                for node in source_nodes:
-                    if node.ID == section.FromNode.ID: 
-                        nodeID = node.ID.split("-")[0]
-                        for network in networks:
-                            red_network = network.split(">")[1]
-                            if red_network == nodeID:
-                                source = self.cympy.study.AddDevice(
-                                    f"NEW-SOURCE-{i}", 
-                                    self.cympy.enums.DeviceType.Source, 
-                                    section.ID, 
-                                    "DEFAULT"
-                                )
-                                #source.SetValue(12.47, 'OperatingVoltageA')
-                                #source.SetValue(12.47, 'OperatingVoltageB')
-                                #source.SetValue(12.47, 'OperatingVoltageC')
-                                self.__Logger.info(f"Source added to network {network} at section {section}")
-                                i += 1
-        #sources = self.cympy.study.ListDevices(self.cympy.enums.DeviceType.Source)
+            nested_views = self.cympy.study.ListNestedViews()
+            base_voltages = {}
+            for source_node in source_nodes:
+                base_voltages[source_node.ID] = self.cympy.study.QueryInfoNode("KVLLBase", source_node.ID)
+
+            for view in nested_views:
+                self.cympy.study.DeleteNestedView(view)
+            
+            i = 0
+            for source_node in source_nodes:
+                NI = self.cympy.study.NetworkIterator(source_node.ID)
+                NI.Next()
+                network_id = NI.GetNetworkID()
+                source_name = f"NEW-SOURCE-{i}"
+                self.cympy.study.AddSource(
+                    network_id, 'DEFAULT', source_name, source_node
+                )
+                source = self.cympy.study.ListDevices(self.cympy.enums.DeviceType.Source)[-1]
+                kV = base_voltages[source_node.ID]
+                source.SetValue(kV, 'OperatingVoltageA')
+                source.SetValue(kV, 'OperatingVoltageB')
+                source.SetValue(kV, 'OperatingVoltageC')
+                #source.SetValue(kV, 'SourceKVNom')
+                self.__Logger.info(f"Source {source_name}@{kV}kV added  to network {network_id} at node {source_node.ID}")
+                i += 1
+
         return
+
 
 
     def get_devices(self, elm_type, var_list):

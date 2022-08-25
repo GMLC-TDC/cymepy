@@ -40,6 +40,7 @@ class Project_Settings(BaseModel):
     profiles_mdb_file: str
     sxst_file: str
     cyme_installation_directory: str
+    append_to_exported_files : str
 
     @validator('start_time')
     def validate_start_time(cls, v):
@@ -77,6 +78,8 @@ class Project_Settings(BaseModel):
                     raise Exception(f"A valid cymepy project should have a '{file.value}' file in the base path")
 
 class Helics_Settings(BaseModel):
+    publication_file: str
+    subscription_file:str 
     cosimulation_mode: bool
     coiter_mode: bool
     coiter_error_tolerance: confloat(gt=0)
@@ -88,6 +91,17 @@ class Helics_Settings(BaseModel):
     core_type: HELICS_CORE_TYPE
     uninterruptible: bool
     helics_logging_level: conint(ge=1, le=7)
+
+    # @validator('publication_file')
+    # def validate_publication_file(cls, v):
+    #     if not os.path.exists(v):
+    #         raise Exception(f"Publication toml path: {v} does not exist")
+
+    # @validator('subscription_file')
+    # def validate_subscription_file(cls, v):
+    #     if not os.path.exists(v):
+    #         raise Exception(f"Subscription toml file: {v} does not exist")
+
 
 class Logger_Settings(BaseModel):
     logging_level: LOGGING_LEVEL

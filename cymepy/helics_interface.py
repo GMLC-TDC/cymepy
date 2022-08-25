@@ -56,10 +56,16 @@ class HELICS:
 
     def registerSubscriptions(self):
         self.__Logger.info("Creating subscriptions")
-        subpath = os.path.join(
-            self.settings["project"]['project_path'],
-            CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE.value
-        )
+        if not self.settings['helics']['subscription_file']:
+            subpath = os.path.join(
+                self.settings["project"]['project_path'],
+                CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE.value
+            )
+        else:
+            subpath = subpath = os.path.join(
+                self.settings["project"]['project_path'],
+                self.settings['helics']['subscription_file']
+            )
 
         subscriptionDict = toml.load(open(subpath, "r"))
         subscriptionDict = validate_settings(subscriptionDict, CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE)
@@ -242,10 +248,17 @@ class HELICS:
                     h.helicsPublicationPublishVector(helics_map.pub, value)
 
     def registerPublications(self):
-        pubpath = os.path.join(
-            self.settings["project"]['project_path'],
-            CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE.value
-        )
+        
+        if not self.settings['helics']['publication_file']:
+            pubpath = os.path.join(
+                self.settings["project"]['project_path'],
+                CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE.value
+            )
+        else:
+            pubpath = os.path.join(
+                self.settings["project"]['project_path'],
+                self.settings['helics']['publication_file']
+            )
 
         publicationDict = toml.load(open(pubpath, "r"))
         publicationDict = validate_settings(publicationDict, CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE)

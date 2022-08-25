@@ -25,12 +25,20 @@ class Writer(ExportManager):
             for timestamp, cInfo in results.items():
                 for cName, eInfo in cInfo.items():
                     if cName not in FileHandles:
-                        FileHandles[cName] = open(
-                            os.path.join(
-                                self.path, f"{cName}.csv"
-                            ),
-                            "w"
-                        )
+                        if not self.settings["project"]['append_to_exported_files']:
+                            FileHandles[cName] = open(
+                                os.path.join(
+                                    self.path, f"{cName}.csv"
+                                ),
+                                "w"
+                            )
+                        else:
+                            FileHandles[cName] = open(
+                                os.path.join(
+                                    self.path, f"{self.settings['project']['append_to_exported_files']}_{cName}.csv"
+                                ),
+                                "w"
+                            )
                         self.writeHeader = True
                     else:
                         self.writeHeader = False
