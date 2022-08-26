@@ -7,11 +7,11 @@ import cymepy.logger as Logger
 import os
 
 class cymeInstance:
-    def __init__(self, SettingsDict, N=None):
+    def __init__(self, SettingsDict):
         self.SystemStates = []
         self.step = 0
         self.settings = validate_settings(SettingsDict, CORE_CYMEPY_PROJECT_FILES.SIMULATION_FILE)
-        LoggerTag = 'CymeInstance' if N == None else 'CymeInstance_' + str(N)
+        LoggerTag = 'cymepy_' + str(self.settings['helics']['federate_name']).lower().replace('.sxst', '')
         self.__Logger = Logger.getLogger(
             LoggerTag,
             LoggerOptions=SettingsDict["logger"],
@@ -26,7 +26,7 @@ class cymeInstance:
             import cympy.rm
             import cympy.db
 
-            print(dir(cympy.enums.DeviceType))
+            #print(dir(cympy.enums.DeviceType))
           
             cympy.app.ActivateRefresh(False)
             self.cympy = cympy

@@ -1,3 +1,2 @@
 [console_scripts]
 cymepy = cymepy.cli.cymepy:cli
-

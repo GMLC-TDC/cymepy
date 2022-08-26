@@ -12,7 +12,7 @@ class ProfileManager(BaseProfileManager):
         super(ProfileManager, self).__init__(sim_instance, solver, options, logger, **kwargs)
         if os.path.exists(self.basepath):
             self.logger.info("Loading existing h5 store")
-            self.store = h5py.File(self.basepath, "r+")
+            self.store = h5py.File(self.basepath, "r")
         else:
             self.logger.info("Creating new h5 store")
             self.store = h5py.File(self.basepath, "w")

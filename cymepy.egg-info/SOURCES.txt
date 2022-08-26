@@ -8,6 +8,7 @@ cymepy/common.py
 cymepy/cymepy.py
 cymepy/device_obj.py
 cymepy/helics_interface.py
+cymepy/helics_mapping.py
 cymepy/logger.py
 cymepy/run.py
 cymepy/solver.py

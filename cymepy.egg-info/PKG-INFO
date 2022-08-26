@@ -6,7 +6,6 @@ Home-page: https://github.com/GMLC-TDC/cymepy
 Author: Aadil Latif
 Author-email: Aadil.Latif@nrel.gov
 License: BSD 3 clause
-Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
 Classifier: Environment :: Console
 Classifier: Environment :: Web Environment
@@ -17,6 +16,3 @@ Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: BSD License
 Requires-Python: >=3.6
 License-File: LICENSE
-
-UNKNOWN
-
