@@ -73,9 +73,9 @@ class Project_Settings(BaseModel):
             for fldr in CYMEPY_FOLDER_STRUCTURE:
                 if not os.path.exists(os.path.join(v, fldr)):
                     raise Exception(f"A valid cymepy project should have a '{fldr}' folder")
-            for file in CORE_CYMEPY_PROJECT_FILES:
-                if not os.path.exists(os.path.join(v, file.value)):
-                    raise Exception(f"A valid cymepy project should have a '{file.value}' file in the base path")
+          #  for file in CORE_CYMEPY_PROJECT_FILES:
+          ##      if not os.path.exists(os.path.join(v, file.value)):
+          #          raise Exception(f"A valid cymepy project should have a '{file.value}' file in the base path")
 
 class Helics_Settings(BaseModel):
     publication_file: str

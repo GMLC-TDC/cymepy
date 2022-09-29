@@ -10,7 +10,8 @@ class HELICS:
 
     n_states = 5
     init_state = 1
-
+    use_standard_publications = False
+    
     type_info = {
         'complex': 'complex ',
         'text': 'string',
@@ -44,28 +45,31 @@ class HELICS:
                 self.validNodeTypes.append(k)
 
         self.create_helics_federate()
-        self.registerPublications()
-        self.register_standard_publications()
+        self.standard_publications = []
+        if self.use_standard_publications:    
+            self.register_standard_publications()
+        else:
+            self.registerPublications()
         self.registerSubscriptions()
-
-        h.helicsFederateEnterExecutingModeIterative(
-            self.cymeFederate,
-            h.helics_iteration_request_iterate_if_needed
-        )
-        logger.info('Entered HELICS execution mode')
+        
+        itr = 0
+        itr_flag = h.helics_iteration_request_iterate_if_needed
+        while True:
+            itr_status = h.helicsFederateEnterExecutingModeIterative(
+                self.cymeFederate, 
+                itr_flag
+                ) 
+            self.__Logger.debug(f"--- Iter {itr}: Iteration Status = {itr_status}, Passed Iteration Requestion = {itr_flag}")
+            if itr_status == h.helics_iteration_result_next_step:
+                break
 
     def registerSubscriptions(self):
         self.__Logger.info("Creating subscriptions")
-        if not self.settings['helics']['subscription_file']:
-            subpath = os.path.join(
-                self.settings["project"]['project_path'],
-                CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE.value
-            )
-        else:
-            subpath = subpath = os.path.join(
-                self.settings["project"]['project_path'],
-                self.settings['helics']['subscription_file']
-            )
+   
+        subpath = subpath = os.path.join(
+            self.settings["project"]['project_path'],
+            self.settings['helics']['subscription_file']
+        )
 
         subscriptionDict = toml.load(open(subpath, "r"))
         subscriptionDict = validate_settings(subscriptionDict, CORE_CYMEPY_PROJECT_FILES.SUBSCRIPTION_FILE)
@@ -151,13 +155,13 @@ class HELICS:
     def register_standard_publications(self):
         pubpath = os.path.join(
             self.settings["project"]['project_path'],
-            CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE.value
+            self.settings['helics']['publication_file']
         )
 
         publicationDict = toml.load(open(pubpath, "r"))
         publicationDict = validate_settings(publicationDict, CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE)
         
-        self.standard_publications = []
+        
         for cName, pubInfoList in publicationDict.items():
             for pubInfo in pubInfoList:
                 if cName not in self.validTypes and cName not in self.validNodeTypes:
@@ -184,13 +188,11 @@ class HELICS:
                                     self.create_propery_publication(device, cName, pubInfo)
                             else:
                                 self.create_propery_publication(device, cName, pubInfo)
-                                
-                                       
-                                  
-        for M in self.standard_publications:
-            print(M)
-        
+                                                               
+        # for M in self.standard_publications:
+        #     print(M)
         return
+    
     def create_propery_publication(self, device, cName, pubInfo):
         for ppty_name in pubInfo["properties"]:
             if cName in self.validTypes:
@@ -249,16 +251,10 @@ class HELICS:
 
     def registerPublications(self):
         
-        if not self.settings['helics']['publication_file']:
-            pubpath = os.path.join(
-                self.settings["project"]['project_path'],
-                CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE.value
-            )
-        else:
-            pubpath = os.path.join(
-                self.settings["project"]['project_path'],
-                self.settings['helics']['publication_file']
-            )
+        pubpath = os.path.join(
+            self.settings["project"]['project_path'],
+            self.settings['helics']['publication_file']
+        )
 
         publicationDict = toml.load(open(pubpath, "r"))
         publicationDict = validate_settings(publicationDict, CORE_CYMEPY_PROJECT_FILES.PUBLICATION_FILE)
@@ -369,7 +365,8 @@ class HELICS:
                 h.helicsPublicationPublishString(pub, str(res))
             elif pubInfo["dType"].lower() == "number":
                 h.helicsPublicationPublishInteger(pub, int(res))
-
+                
+            self.__Logger.debug(f"Publication updated {pubName}: {res}")
         return
 
     def update_subscriptions(self):
@@ -413,23 +410,53 @@ class HELICS:
             self.__Logger.info('Time requested: {} - time granted: {} '.format(r_seconds, self.c_seconds))
             return True, self.c_seconds
         else:
-            if self.itr == 0:
-                while self.c_seconds < r_seconds:
-                    self.c_seconds = h.helicsFederateRequestTime(self.cymeFederate, r_seconds)
-            else:
-                self.c_seconds, iteration_state = h.helicsFederateRequestTimeIterative(
+            itr = 0
+            epsilon = 1e-6
+            while True:
+                self.c_seconds, itr_state = h.helicsFederateRequestTimeIterative(
                     self.cymeFederate,
                     r_seconds,
-                    h.helics_iteration_request_force_iteration
+                    h.helics_iteration_request_iterate_if_needed
                 )
-                self.__Logger.info('Time requested: {} - time granted: {} error: {} it: {}'.format(
-                    r_seconds, self.c_seconds, error, self.itr))
-            if error > -1 and self.itr < self.settings['helics']["max_coiter"] - 1:
-                self.itr += 1
-                return False, self.c_seconds
-            else:
-                self.itr = 0         
-                return True, self.c_seconds
+                if (itr_state == h.helics_iteration_result_next_step):
+                    self.__Logger.debug("\tIteration complete!")
+                    break
+                
+                self.update_subscriptions()
+                self.Solver.resolve()
+                self.update_publications()
+                
+                itr += 1
+                self.__Logger.debug(f"\titr = {itr}")
+
+                if itr > self.settings["helics"]['max_coiter']:
+                    self.c_seconds, itr_state = h.helicsFederateRequestTimeIterative(
+                        self.cymeFederate,
+                        r_seconds,
+                        h.helics_iteration_request_no_iteration
+                    )
+                else:
+                    pass
+            
+            return True, self.c_seconds
+
+            # if self.itr == 0:
+            #     while self.c_seconds < r_seconds:
+            #         self.c_seconds = h.helicsFederateRequestTime(self.cymeFederate, r_seconds)
+            # else:
+            #     self.c_seconds, iteration_state = h.helicsFederateRequestTimeIterative(
+            #         self.cymeFederate,
+            #         r_seconds,
+            #         h.helics_iteration_request_iterate_if_needed
+            #     )
+            #     self.__Logger.info('Time requested: {} - time granted: {} error: {} it: {}'.format(
+            #         r_seconds, self.c_seconds, error, self.itr))
+            # if error > -1 and self.itr < self.settings['helics']["max_coiter"] - 1:
+            #     self.itr += 1
+            #     return False, self.c_seconds
+            # else:
+            #     self.itr = 0         
+            #     return True, self.c_seconds
 
     # def __del__(self):
     #     h.helicsFederateFinalize(self.cymeFederate)
